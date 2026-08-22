@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --config vite.wallpaper.config.ts --port=3000 --host=0.0.0.0",
-    "build": "vite build --config vite.wallpaper.config.ts && node scripts/finalize-wallpaper-project.mjs",
+    "dev": "vite --config vite.wallpaper.adaptive.config.ts --port=3000 --host=0.0.0.0",
+    "build": "vite build --config vite.wallpaper.adaptive.config.ts && node scripts/finalize-wallpaper-project.mjs",
     "deploy": "npm run build && deploy-wallpaper.bat",
     "lint": "tsc --noEmit"
   },
