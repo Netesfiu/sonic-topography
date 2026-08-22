@@ -17,28 +17,15 @@ if (!properties) {
   throw new Error('Generated project.json has no general.properties object.');
 }
 
-// Keep the enhanced processing internally, but expose only controls that make a
-// clear visual difference. This keeps the panel close to the upstream layout.
-const hiddenTechnicalProperties = [
+// Keep the original Wallpaper Engine section layout. Only remove the temporary
+// Enhanced-v2 headings and the superseded white-sparkle control.
+for (const name of [
   'sep_enhanced_audio',
   'sep_enhanced_audio_title',
   'sep_top_accent',
   'sep_top_accent_title',
-  'beatTriggerStrength',
-  'topAccentDensity',
-  'topAccentIntensity',
-  'visualAttackMs',
-  'visualReleaseMs',
-  'spectralMemoryEnabled',
-  'spectralMemoryStrength',
-  'stereoSpatialStrength',
-  'terrainCoherenceEnabled',
-  'terrainCoherenceStrength',
-  'membraneStrength',
   'sparkleIntensity',
-];
-
-for (const name of hiddenTechnicalProperties) {
+]) {
   delete properties[name];
 }
 
@@ -50,8 +37,23 @@ function configure(name, config) {
   Object.assign(property, config);
 }
 
-// Appearance: extend the original theme/peak-color controls instead of adding a
-// separate "enhanced" section.
+// ---------------------------------------------------------------------------
+// Render
+// ---------------------------------------------------------------------------
+configure('sep_render', { order: 98, text: ' ' });
+configure('sep_render_title', { order: 99, text: '=== Render ===' });
+configure('gridSize', { index: 0, order: 100, text: 'Render Resolution' });
+
+// ---------------------------------------------------------------------------
+// Appearance
+// ---------------------------------------------------------------------------
+configure('sep_appearance', { order: 198, text: ' ' });
+configure('sep_appearance_title', { order: 199, text: '=== Appearance ===' });
+configure('theme', { index: 0, order: 200, text: 'Color Theme' });
+configure('themeCycleInterval', { index: 1, order: 201, text: 'Cycle Interval (s)' });
+configure('peakColorEnabled', { index: 2, order: 202, text: 'Peak Color' });
+configure('peakColorIntensity', { index: 3, order: 203, text: 'Peak Color Intensity' });
+
 configure('topAccentEnabled', {
   index: 4,
   order: 204,
@@ -91,32 +93,161 @@ configure('topAccentCustomColor', {
   text: 'Custom Accent Color',
 });
 
-// Audio Response: only the two large-scale spatial/physical choices remain.
-configure('stereoSpatialEnabled', {
+configure('topAccentDensity', {
+  index: 8,
+  order: 208,
+  text: 'Accent Density',
+  min: 0.01,
+  max: 0.20,
+  step: 0.005,
+});
+
+configure('topAccentIntensity', {
+  index: 9,
+  order: 209,
+  text: 'Accent Strength',
+  min: 0,
+  max: 1.5,
+  step: 0.05,
+});
+
+// ---------------------------------------------------------------------------
+// Audio Response
+// ---------------------------------------------------------------------------
+configure('sep_audio', { order: 298, text: ' ' });
+configure('sep_audio_title', { order: 299, text: '=== Audio Response ===' });
+configure('audioIntensity', { index: 0, order: 300, text: 'Audio Intensity' });
+configure('responseRange', { index: 1, order: 301, text: 'Response Range' });
+
+configure('visualAttackMs', {
   index: 2,
   order: 302,
+  text: 'Visual Attack (ms)',
+});
+
+configure('visualReleaseMs', {
+  index: 3,
+  order: 303,
+  text: 'Visual Release (ms)',
+});
+
+configure('stereoSpatialEnabled', {
+  index: 4,
+  order: 304,
   text: 'Stereo Spatialization',
 });
 
+configure('stereoSpatialStrength', {
+  index: 5,
+  order: 305,
+  text: 'Stereo Strength',
+  min: 0,
+  max: 1.5,
+  step: 0.05,
+});
+
+configure('spectralMemoryEnabled', {
+  index: 6,
+  order: 306,
+  text: 'Spectral Memory',
+});
+
+configure('spectralMemoryStrength', {
+  index: 7,
+  order: 307,
+  text: 'Spectral Memory Strength',
+  min: 0,
+  max: 1.5,
+  step: 0.05,
+});
+
+configure('terrainCoherenceEnabled', {
+  index: 8,
+  order: 308,
+  text: 'Terrain Coherence',
+});
+
+configure('terrainCoherenceStrength', {
+  index: 9,
+  order: 309,
+  text: 'Terrain Coherence Strength',
+  min: 0,
+  max: 1.5,
+  step: 0.05,
+});
+
 configure('membraneEnabled', {
-  index: 3,
-  order: 303,
+  index: 10,
+  order: 310,
   text: 'Rubber Membrane Center',
 });
 
-// Ripple: beat synchronization belongs beside the original ripple controls.
+configure('membraneStrength', {
+  index: 11,
+  order: 311,
+  text: 'Membrane Bounce Strength',
+  min: 0,
+  max: 1.5,
+  step: 0.05,
+});
+
+// ---------------------------------------------------------------------------
+// Effect-Ripple
+// ---------------------------------------------------------------------------
+configure('sep_ripple', { order: 398, text: ' ' });
+configure('sep_ripple_title', { order: 399, text: '=== Effect-Ripple ===' });
+configure('pulseEnabled', { index: 0, order: 400, text: 'Enable Ripple' });
+configure('pulseSensitivity', { index: 1, order: 401, text: 'Ripple Sensitivity' });
+configure('pulseCooldown', { index: 2, order: 402, text: 'Ripple Cooldown (frames)' });
+
 configure('rhythmSyncEnabled', {
   index: 3,
   order: 403,
   text: 'Beat-synced Ripples',
 });
 
-// User-facing identity should stay close to the upstream project. Keep the
-// Workshop identity removed so this local build cannot impersonate the original.
+configure('beatTriggerStrength', {
+  index: 4,
+  order: 404,
+  text: 'Beat Trigger Strength',
+  min: 0.25,
+  max: 2.0,
+  step: 0.05,
+});
+
+// Normalize the remaining original section headings to English while keeping
+// their original order and grouping.
+const originalSections = [
+  ['sep_meteor', 498, ' '],
+  ['sep_meteor_title', 499, '=== Effect-Meteor ==='],
+  ['sep_idle', 598, ' '],
+  ['sep_idle_title', 599, '=== Effect-Idle Wave ==='],
+  ['sep_camera', 698, ' '],
+  ['sep_camera_title', 699, '=== Camera ==='],
+  ['sep_player', 798, ' '],
+  ['sep_player_title', 799, '=== Player ==='],
+];
+
+for (const [name, order, text] of originalSections) {
+  if (properties[name]) configure(name, { order, text });
+}
+
+// Physically sort the JSON properties as well as assigning order numbers. This
+// avoids odd heading placement in Wallpaper Engine builds that preserve insertion
+// order for some text properties.
+const sortedProperties = Object.fromEntries(
+  Object.entries(properties).sort(([, a], [, b]) => {
+    const aOrder = Number(a?.order ?? Number.MAX_SAFE_INTEGER);
+    const bOrder = Number(b?.order ?? Number.MAX_SAFE_INTEGER);
+    return aOrder - bOrder;
+  }),
+);
+project.general.properties = sortedProperties;
+
 project.name = 'Sonic Topography';
 project.title = 'Sonic Topography';
 project.description =
-  '3D audio-reactive topography with synchronized rhythm response, stereo spatialization, ripples, meteors and music-reactive color accents.';
+  '3D audio-reactive topography with rhythm analysis, stereo spatialization, spectral memory, terrain dynamics, ripples, meteors and music-reactive top accents.';
 project.version = 2;
 delete project.workshopid;
 delete project.workshopurl;
@@ -132,4 +263,4 @@ if (fs.existsSync(htmlPath)) {
   fs.writeFileSync(htmlPath, html, 'utf8');
 }
 
-console.log('Finalized Wallpaper Engine settings panel.');
+console.log('Finalized fine-grained Wallpaper Engine settings in original sections.');
