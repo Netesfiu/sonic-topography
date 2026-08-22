@@ -43,21 +43,21 @@ Object.assign(properties, {
   },
   sep_enhanced_audio_title: {
     order: 349,
-    text: '===增强音频 / Enhanced Audio v2===',
+    text: '=== Enhanced Audio v2 ===',
     type: 'text',
     value: '',
   },
   rhythmSyncEnabled: {
     index: 0,
     order: 350,
-    text: '节奏同步 / Rhythm Sync',
+    text: 'Rhythm Sync',
     type: 'bool',
     value: true,
   },
   beatTriggerStrength: {
     index: 1,
     order: 351,
-    text: '节拍触发强度 / Beat Trigger Strength',
+    text: 'Beat Trigger Strength',
     type: 'slider',
     value: 1.0,
     min: 0.25,
@@ -67,7 +67,7 @@ Object.assign(properties, {
   sparkleIntensity: {
     index: 2,
     order: 352,
-    text: '高频闪烁 / Sparkle Intensity',
+    text: 'Sparkle Intensity',
     type: 'slider',
     value: 0.12,
     min: 0,
@@ -77,7 +77,7 @@ Object.assign(properties, {
   visualAttackMs: {
     index: 3,
     order: 353,
-    text: '响应上升 (ms) / Visual Attack (ms)',
+    text: 'Visual Attack (ms)',
     type: 'slider',
     value: 45,
     min: 10,
@@ -87,7 +87,7 @@ Object.assign(properties, {
   visualReleaseMs: {
     index: 4,
     order: 354,
-    text: '响应衰减 (ms) / Visual Release (ms)',
+    text: 'Visual Release (ms)',
     type: 'slider',
     value: 160,
     min: 50,
@@ -96,14 +96,62 @@ Object.assign(properties, {
   },
 });
 
+// Convert all Wallpaper Engine-facing labels to English. The original project
+// stores most labels as "Chinese / English". Keeping only the English half makes
+// it much easier to inspect the generated property schema while debugging.
+const chineseRegex = /[\u3400-\u9fff]/;
+
+function englishOnly(value) {
+  if (typeof value !== 'string' || !chineseRegex.test(value)) return value;
+
+  const trimmed = value.trim();
+  const isHeading = trimmed.startsWith('===') && trimmed.endsWith('===');
+
+  if (value.includes(' / ')) {
+    let english = value.split(' / ').at(-1)?.trim() ?? value;
+
+    if (isHeading) {
+      english = english.replace(/^=+/, '').replace(/=+$/, '').trim();
+      return `=== ${english} ===`;
+    }
+
+    return english;
+  }
+
+  // Fallback for Chinese-only UI strings. Normally only metadata should reach
+  // this branch; remove CJK characters rather than exposing them in the UI.
+  return value
+    .replace(/[\u3400-\u9fff]+/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+for (const property of Object.values(properties)) {
+  if (!property || typeof property !== 'object') continue;
+
+  if (typeof property.text === 'string') {
+    property.text = englishOnly(property.text);
+  }
+
+  if (Array.isArray(property.options)) {
+    for (const option of property.options) {
+      if (option && typeof option.label === 'string') {
+        option.label = englishOnly(option.label);
+      }
+    }
+  }
+}
+
 // A local fork should not impersonate the upstream Workshop item. Keeping the
 // upstream Workshop ID can make Wallpaper Engine reuse metadata/property state.
 project.name = 'Sonic Topography Enhanced v2';
 project.title = 'Sonic Topography Enhanced v2';
+project.description = 'Enhanced 3D audio-reactive topography with rhythm analysis, ripples, meteors, configurable smoothing and clean high-frequency rendering.';
 project.version = 2;
 delete project.workshopid;
 delete project.workshopurl;
 
 fs.writeFileSync(projectPath, `${JSON.stringify(project, null, '\t')}\n`, 'utf8');
 console.log('[enhanced-v2] Added Enhanced Audio v2 controls to wallpaper/project.json');
+console.log('[enhanced-v2] Converted Wallpaper Engine property labels to English only');
 console.log('[enhanced-v2] Removed upstream Workshop identity from the local build metadata');
