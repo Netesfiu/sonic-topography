@@ -13,7 +13,7 @@ import {
   writeFileSync,
 } from 'fs';
 
-const enhancedPropertyHandlers = `    // Enhanced v2 audio controls
+const enhancedPropertyHandlers = `    // Enhanced audio controls
     if (properties.rhythmSyncEnabled?.value !== undefined) {
       engine.rhythmSyncEnabled = properties.rhythmSyncEnabled.value as boolean;
     }
@@ -43,12 +43,6 @@ const enhancedPropertyHandlers = `    // Enhanced v2 audio controls
     }
     if (properties.terrainCoherenceStrength?.value !== undefined) {
       engine.terrainCoherenceStrength = Math.max(0, Math.min(1.5, Number(properties.terrainCoherenceStrength.value)));
-    }
-    if (properties.membraneEnabled?.value !== undefined) {
-      engine.membraneEnabled = properties.membraneEnabled.value as boolean;
-    }
-    if (properties.membraneStrength?.value !== undefined) {
-      engine.membraneStrength = Math.max(0, Math.min(1.5, Number(properties.membraneStrength.value)));
     }
     if (properties.topAccentEnabled?.value !== undefined) {
       engine.topAccentEnabled = properties.topAccentEnabled.value as boolean;
@@ -280,23 +274,6 @@ function buildEnhancedProject() {
       max: 1.5,
       step: 0.05,
     },
-    membraneEnabled: {
-      index: 16,
-      order: 368,
-      text: 'Rubber Membrane Center',
-      type: 'bool',
-      value: false,
-    },
-    membraneStrength: {
-      index: 17,
-      order: 369,
-      text: 'Membrane Bounce Strength',
-      type: 'slider',
-      value: 0.75,
-      min: 0,
-      max: 1.5,
-      step: 0.05,
-    },
   });
 
   // Remove the old white sparkle control from generated builds. The new
@@ -322,7 +299,7 @@ function buildEnhancedProject() {
   project.name = 'Sonic Topography Enhanced v2';
   project.title = 'Sonic Topography Enhanced v2';
   project.description =
-    'Enhanced 3D audio-reactive topography with rhythm analysis, spectral memory, stereo spatialization, terrain coherence, optional membrane dynamics and music-selectable top-surface accents.';
+    'Enhanced 3D audio-reactive topography with rhythm analysis, spectral memory, stereo spatialization, terrain coherence and music-selectable top-surface accents.';
   project.version = 2;
   delete project.workshopid;
   delete project.workshopurl;
@@ -385,8 +362,6 @@ export default defineConfig({
   public stereoSpatialStrength = 0.55;
   public terrainCoherenceEnabled = true;
   public terrainCoherenceStrength = 0.65;
-  public membraneEnabled = false;
-  public membraneStrength = 0.75;
 
   // Music-selectable top-surface accents. "vocal" is a spectral heuristic,
   // not semantic source separation, because Wallpaper Engine exposes FFT magnitudes.
@@ -409,9 +384,6 @@ export default defineConfig({
   // Six smooth spectral-memory layers (low/mid/high). Inner terrain uses the
   // fast layers; outer terrain uses progressively slower layers up to ~3.2 s.
   private readonly spectralMemory = new Float32Array(18);
-  private membranePosition = 0;
-  private membraneVelocity = 0;
-  private membraneOffset = 0;
 `,
           );
 
@@ -441,44 +413,12 @@ export default defineConfig({
 `;
           next = next.replace(targetAnchor, `$1${memoryUpdate}`);
 
-          const dtAnchor = /(    const dt = Math\.max\(0\.00025, Math\.min\(0\.1, deltaTime \|\| 0\.016\)\);\r?\n)/;
-          if (!dtAnchor.test(next)) {
-            throw new Error('Could not locate AudioEngine render dt for membrane physics.');
-          }
-          const membraneUpdate = `
-    // Optional under-damped central membrane. It follows raw sub-bass targets,
-    // so a sudden stop can carry momentum through neutral into a brief negative dip.
-    if (this.membraneEnabled) {
-      const target = clamp01(this.targetData.subBass);
-      const stiffness = 160.0;
-      const damping = 14.0;
-      const acceleration =
-        (target - this.membranePosition) * stiffness -
-        this.membraneVelocity * damping;
-      this.membraneVelocity += acceleration * dt;
-      this.membranePosition += this.membraneVelocity * dt;
-      this.membraneOffset = Math.max(
-        -0.38,
-        Math.min(0.45, (this.membranePosition - target) * this.membraneStrength),
-      );
-    } else {
-      this.membranePosition = clamp01(this.targetData.subBass);
-      this.membraneVelocity = 0;
-      this.membraneOffset = 0;
-    }
-`;
-          next = next.replace(dtAnchor, `$1${membraneUpdate}`);
-
           const idleAnchor = /(  public getIdleWaveIntensity\(deltaTime: number = 0\.016\): number \{)/;
           if (!idleAnchor.test(next)) {
             throw new Error('Could not locate AudioEngine public getter insertion point.');
           }
           const getters = `  public getSpectralMemory(): Float32Array {
     return this.spectralMemory;
-  }
-
-  public getMembraneOffset(): number {
-    return this.membraneEnabled ? this.membraneOffset : 0;
   }
 
 `;
@@ -488,7 +428,7 @@ export default defineConfig({
             !next.includes('public spectralMemoryEnabled = true;') ||
             !next.includes('public topAccentTrigger') ||
             !next.includes('private readonly spectralMemory') ||
-            !next.includes('getMembraneOffset()')
+            !next.includes('getSpectralMemory()')
           ) {
             throw new Error('Enhanced AudioEngine terrain transform did not apply completely.');
           }
@@ -512,7 +452,6 @@ export default defineConfig({
     uStereoSpatialStrength: 0,
     uTerrainCoherenceStrength: 0,
     uSpectralMemoryStrength: 0,
-    uMembraneOffset: 0,
     uMemory0: new THREE.Vector3(),
     uMemory1: new THREE.Vector3(),
     uMemory2: new THREE.Vector3(),
@@ -539,7 +478,6 @@ export default defineConfig({
     uniform float uStereoSpatialStrength;
     uniform float uTerrainCoherenceStrength;
     uniform float uSpectralMemoryStrength;
-    uniform float uMembraneOffset;
     uniform vec3 uMemory0;
     uniform vec3 uMemory1;
     uniform vec3 uMemory2;
@@ -625,10 +563,6 @@ export default defineConfig({
       float memoryTexture = 0.72 +
         ((snoise(pos2D * 0.045 + vec2(uTime * 0.018, 0.0)) + 1.0) * 0.5) * 0.28;
       audioElevation += memoryValue * memoryTexture * uSpectralMemoryStrength * 1.35;
-
-      // Optional center membrane displacement may become negative after a sharp
-      // bass stop, creating a rubber-sheet undershoot rather than a flash.
-      audioElevation += uMembraneOffset * subRegion * 4.2 * uAudioIntensity;
 `;
           next = next.replace(combineAnchor, `$1${continuousTerrain}`);
 
@@ -638,8 +572,7 @@ export default defineConfig({
           }
           next = next.replace(
             heightAnchor,
-            `      float totalHeight = max(0.12, 1.0 + elevation);
-`,
+            `      float totalHeight = max(0.12, 1.0 + elevation);\n`,
           );
 
           // Fragment-only uniforms for top-surface music accents.
@@ -649,13 +582,7 @@ export default defineConfig({
           }
           next = next.replace(
             fragmentUniformAnchor,
-            `$1    uniform float uTopAccentLevel;
-    uniform float uTopAccentDensity;
-    uniform float uTopAccentIntensity;
-    uniform float uTopAccentColorMode;
-    uniform vec3 uTopAccentRandomColor;
-    uniform vec3 uTopAccentCustomColor;
-`,
+            `$1    uniform float uTopAccentLevel;\n    uniform float uTopAccentDensity;\n    uniform float uTopAccentIntensity;\n    uniform float uTopAccentColorMode;\n    uniform vec3 uTopAccentRandomColor;\n    uniform vec3 uTopAccentCustomColor;\n`,
           );
 
           const topColorAnchor = /(         finalColor = mix\(cBase2, currentGlow, topIntensity\);\r?\n)/;
@@ -698,7 +625,6 @@ export default defineConfig({
             !next.includes('uSpectralMemoryStrength: 0') ||
             !next.includes('uTopAccentLevel: 0') ||
             !next.includes('memoryCoord') ||
-            !next.includes('uMembraneOffset * subRegion') ||
             !next.includes('themeTopColor')
           ) {
             throw new Error('Enhanced shader terrain/accent transform did not apply completely.');
@@ -737,9 +663,7 @@ export default defineConfig({
           }
           next = next.replace(
             dataAnchor,
-            `$1    const music = engine.getMusicState();
-    const spectralMemory = engine.getSpectralMemory();
-`,
+            `$1    const music = engine.getMusicState();\n    const spectralMemory = engine.getSpectralMemory();\n`,
           );
 
           next = next.replace(
@@ -867,7 +791,6 @@ export default defineConfig({
     mat.uSpectralMemoryStrength = engine.spectralMemoryEnabled
       ? engine.spectralMemoryStrength
       : 0.0;
-    mat.uMembraneOffset = engine.getMembraneOffset();
     mat.uMemory0.set(spectralMemory[0], spectralMemory[1], spectralMemory[2]);
     mat.uMemory1.set(spectralMemory[3], spectralMemory[4], spectralMemory[5]);
     mat.uMemory2.set(spectralMemory[6], spectralMemory[7], spectralMemory[8]);
@@ -891,8 +814,7 @@ export default defineConfig({
             !next.includes('const spectralMemory = engine.getSpectralMemory();') ||
             !next.includes('topAccentEnvelopeRef') ||
             !next.includes("case 'vocal'") ||
-            !next.includes('mat.uTopAccentLevel =') ||
-            !next.includes('mat.uMembraneOffset = engine.getMembraneOffset();')
+            !next.includes('mat.uTopAccentLevel =')
           ) {
             throw new Error('Enhanced MapScene terrain/accent transform did not apply completely.');
           }
