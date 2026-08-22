@@ -1,25 +1,26 @@
 $ErrorActionPreference = "Stop"
 
 # ============================================================
-# Sonic Topography Enhanced v2
-# Update -> Build -> Verify -> Deploy
+# Sonic Topography
+# Update -> Build -> Finalize settings -> Verify -> Deploy
 # ============================================================
 
 # CHANGE THIS to your Wallpaper Engine local project directory.
 # Example:
-# $WE = "C:\Program Files (x86)\Steam\steamapps\common\wallpaper_engine\projects\myprojects\sonic-topography-enhanced"
+# $WE = "C:\Program Files (x86)\Steam\steamapps\common\wallpaper_engine\projects\myprojects\sonic-topography-custom"
 $WE = "<SET_WALLPAPER_ENGINE_PROJECT_PATH_HERE>"
 
 $Branch = "enhanced-audio-v2"
 $BuildDir = ".\dist-wallpaper"
 $ProjectFile = Join-Path $BuildDir "project.json"
 $Vite = ".\node_modules\.bin\vite.cmd"
+$Finalizer = ".\scripts\finalize-wallpaper-project.mjs"
 
 if ($WE -eq "<SET_WALLPAPER_ENGINE_PROJECT_PATH_HERE>" -or [string]::IsNullOrWhiteSpace($WE)) {
     throw "Set the `$WE variable at the top of update.ps1 to your Wallpaper Engine project directory first."
 }
 
-Write-Host "`n[1/6] Updating $Branch..." -ForegroundColor Cyan
+Write-Host "`n[1/7] Updating $Branch..." -ForegroundColor Cyan
 
 git switch $Branch
 if ($LASTEXITCODE -ne 0) {
@@ -34,13 +35,13 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "`nCurrent commit:" -ForegroundColor Yellow
 git log -1 --oneline
 
-Write-Host "`n[2/6] Cleaning old build..." -ForegroundColor Cyan
+Write-Host "`n[2/7] Cleaning old build..." -ForegroundColor Cyan
 
 if (Test-Path $BuildDir) {
     Remove-Item $BuildDir -Recurse -Force
 }
 
-Write-Host "`n[3/6] Building Wallpaper Engine package..." -ForegroundColor Cyan
+Write-Host "`n[3/7] Building Wallpaper Engine package..." -ForegroundColor Cyan
 
 if (!(Test-Path $Vite)) {
     throw "Vite was not found at $Vite. Install the project dependencies first."
@@ -59,7 +60,18 @@ if (!(Test-Path $ProjectFile)) {
     throw "Build completed, but dist-wallpaper\project.json was not found."
 }
 
-Write-Host "`n[4/6] Verifying generated project..." -ForegroundColor Cyan
+Write-Host "`n[4/7] Finalizing settings panel..." -ForegroundColor Cyan
+
+if (!(Test-Path $Finalizer)) {
+    throw "Settings finalizer was not found at $Finalizer."
+}
+
+node $Finalizer $BuildDir
+if ($LASTEXITCODE -ne 0) {
+    throw "Settings finalization failed."
+}
+
+Write-Host "`n[5/7] Verifying generated project..." -ForegroundColor Cyan
 
 $Project = Get-Content $ProjectFile -Raw | ConvertFrom-Json
 $P = $Project.general.properties
@@ -68,7 +80,7 @@ Write-Host "Name:    $($Project.name)"
 Write-Host "Title:   $($Project.title)"
 Write-Host "Version: $($Project.version)"
 
-if ($Project.name -ne "Sonic Topography Enhanced v2") {
+if ($Project.name -ne "Sonic Topography") {
     throw "Unexpected generated project name: $($Project.name)"
 }
 
@@ -76,40 +88,51 @@ if ($Project.workshopid) {
     throw "The generated project still contains the upstream Workshop ID."
 }
 
+# Only the high-impact additions should remain visible in Wallpaper Engine.
 $RequiredProperties = @(
-    "rhythmSyncEnabled",
-    "beatTriggerStrength",
     "topAccentEnabled",
     "topAccentTrigger",
     "topAccentColorMode",
     "topAccentCustomColor",
+    "stereoSpatialEnabled",
+    "membraneEnabled",
+    "rhythmSyncEnabled"
+)
+
+foreach ($Name in $RequiredProperties) {
+    if ($null -eq $P.$Name) {
+        throw "Required user-facing property is missing: $Name"
+    }
+    Write-Host "  OK: $Name" -ForegroundColor Green
+}
+
+# Technical tuning remains internal and should not clutter the settings panel.
+$HiddenProperties = @(
+    "sep_enhanced_audio",
+    "sep_enhanced_audio_title",
+    "sep_top_accent",
+    "sep_top_accent_title",
+    "beatTriggerStrength",
     "topAccentDensity",
     "topAccentIntensity",
     "visualAttackMs",
     "visualReleaseMs",
     "spectralMemoryEnabled",
     "spectralMemoryStrength",
-    "stereoSpatialEnabled",
     "stereoSpatialStrength",
     "terrainCoherenceEnabled",
     "terrainCoherenceStrength",
-    "membraneEnabled",
-    "membraneStrength"
+    "membraneStrength",
+    "sparkleIntensity"
 )
 
-foreach ($Name in $RequiredProperties) {
-    if ($null -eq $P.$Name) {
-        throw "Enhanced v2 property is missing: $Name"
+foreach ($Name in $HiddenProperties) {
+    if ($null -ne $P.$Name) {
+        throw "Technical property should not be user-facing: $Name"
     }
-    Write-Host "  OK: $Name" -ForegroundColor Green
 }
 
-# The old white sparkle system has intentionally been replaced by Music Top Accents.
-if ($null -ne $P.sparkleIntensity) {
-    Write-Warning "Legacy sparkleIntensity is still present in generated project.json."
-} else {
-    Write-Host "  OK: legacy Sparkle Intensity removed" -ForegroundColor Green
-}
+Write-Host "  OK: advanced tuning hidden" -ForegroundColor Green
 
 $JsonText = Get-Content $ProjectFile -Raw
 if ($JsonText -match '[\u3400-\u9fff]') {
@@ -118,7 +141,7 @@ if ($JsonText -match '[\u3400-\u9fff]') {
     Write-Host "  OK: generated UI text is English-only" -ForegroundColor Green
 }
 
-Write-Host "`n[5/6] Deploying to Wallpaper Engine..." -ForegroundColor Cyan
+Write-Host "`n[6/7] Deploying to Wallpaper Engine..." -ForegroundColor Cyan
 
 if (Test-Path $WE) {
     Remove-Item $WE -Recurse -Force
@@ -127,7 +150,7 @@ if (Test-Path $WE) {
 New-Item -ItemType Directory -Force -Path $WE | Out-Null
 Copy-Item "$BuildDir\*" -Destination $WE -Recurse -Force
 
-Write-Host "`n[6/6] Verifying deployed files..." -ForegroundColor Cyan
+Write-Host "`n[7/7] Verifying deployed files..." -ForegroundColor Cyan
 
 $InstalledProject = Join-Path $WE "project.json"
 $InstalledIndex = Join-Path $WE "index.html"
