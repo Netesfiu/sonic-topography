@@ -60,7 +60,7 @@ if (!(Test-Path $ProjectFile)) {
     throw "Build completed, but dist-wallpaper\project.json was not found."
 }
 
-Write-Host "`n[4/7] Finalizing settings panel..." -ForegroundColor Cyan
+Write-Host "`n[4/7] Finalizing original-layout settings panel..." -ForegroundColor Cyan
 
 if (!(Test-Path $Finalizer)) {
     throw "Settings finalizer was not found at $Finalizer."
@@ -88,15 +88,27 @@ if ($Project.workshopid) {
     throw "The generated project still contains the upstream Workshop ID."
 }
 
-# Only the high-impact additions should remain visible in Wallpaper Engine.
+# Fine-grained controls remain available, but are distributed into the original
+# Appearance, Audio Response and Effect-Ripple sections.
 $RequiredProperties = @(
     "topAccentEnabled",
     "topAccentTrigger",
     "topAccentColorMode",
     "topAccentCustomColor",
+    "topAccentDensity",
+    "topAccentIntensity",
+    "visualAttackMs",
+    "visualReleaseMs",
     "stereoSpatialEnabled",
+    "stereoSpatialStrength",
+    "spectralMemoryEnabled",
+    "spectralMemoryStrength",
+    "terrainCoherenceEnabled",
+    "terrainCoherenceStrength",
     "membraneEnabled",
-    "rhythmSyncEnabled"
+    "membraneStrength",
+    "rhythmSyncEnabled",
+    "beatTriggerStrength"
 )
 
 foreach ($Name in $RequiredProperties) {
@@ -106,33 +118,23 @@ foreach ($Name in $RequiredProperties) {
     Write-Host "  OK: $Name" -ForegroundColor Green
 }
 
-# Technical tuning remains internal and should not clutter the settings panel.
-$HiddenProperties = @(
+# These temporary/legacy settings must not appear as separate UI sections.
+$RemovedProperties = @(
     "sep_enhanced_audio",
     "sep_enhanced_audio_title",
     "sep_top_accent",
     "sep_top_accent_title",
-    "beatTriggerStrength",
-    "topAccentDensity",
-    "topAccentIntensity",
-    "visualAttackMs",
-    "visualReleaseMs",
-    "spectralMemoryEnabled",
-    "spectralMemoryStrength",
-    "stereoSpatialStrength",
-    "terrainCoherenceEnabled",
-    "terrainCoherenceStrength",
-    "membraneStrength",
     "sparkleIntensity"
 )
 
-foreach ($Name in $HiddenProperties) {
+foreach ($Name in $RemovedProperties) {
     if ($null -ne $P.$Name) {
-        throw "Technical property should not be user-facing: $Name"
+        throw "Legacy/temporary property should not be user-facing: $Name"
     }
 }
 
-Write-Host "  OK: advanced tuning hidden" -ForegroundColor Green
+Write-Host "  OK: no Enhanced/v2 settings section" -ForegroundColor Green
+Write-Host "  OK: legacy Sparkle Intensity removed" -ForegroundColor Green
 
 $JsonText = Get-Content $ProjectFile -Raw
 if ($JsonText -match '[\u3400-\u9fff]') {
