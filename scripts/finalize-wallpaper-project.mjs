@@ -109,9 +109,10 @@ configure('topAccentDensity', {
   index: 8,
   order: 208,
   text: 'Accent Density',
-  min: 0.01,
-  max: 0.20,
-  step: 0.0025,
+  value: 0.006,
+  min: 0.0005,
+  max: 0.05,
+  step: 0.0005,
 });
 
 configure('topAccentIntensity', {
