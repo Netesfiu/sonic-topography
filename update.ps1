@@ -5,10 +5,53 @@ $ErrorActionPreference = "Stop"
 # Update -> Build -> Finalize settings -> Verify -> Deploy
 # ============================================================
 
-# CHANGE THIS to your Wallpaper Engine local project directory.
-# Example:
-# $WE = "C:\Program Files (x86)\Steam\steamapps\common\wallpaper_engine\projects\myprojects\sonic-topography-custom"
-$WE = "<SET_WALLPAPER_ENGINE_PROJECT_PATH_HERE>"
+$RepoRoot = $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
+    $RepoRoot = (Get-Location).Path
+}
+Set-Location $RepoRoot
+
+# Local machine configuration lives in .env, which is gitignored.
+# Create it once from .env.example and keep update.ps1 unmodified.
+$EnvFile = Join-Path $RepoRoot ".env"
+
+if (!(Test-Path $EnvFile)) {
+    throw "Missing .env. Copy .env.example to .env and set WE to your Wallpaper Engine project directory."
+}
+
+$EnvValues = @{}
+foreach ($Line in Get-Content $EnvFile) {
+    $Trimmed = $Line.Trim()
+
+    if ([string]::IsNullOrWhiteSpace($Trimmed) -or $Trimmed.StartsWith("#")) {
+        continue
+    }
+
+    $Parts = $Trimmed -split "=", 2
+    if ($Parts.Count -ne 2) {
+        throw "Invalid .env line: $Line"
+    }
+
+    $Key = $Parts[0].Trim()
+    $Value = $Parts[1].Trim()
+
+    if (
+        $Value.Length -ge 2 -and
+        (($Value.StartsWith('"') -and $Value.EndsWith('"')) -or
+         ($Value.StartsWith("'") -and $Value.EndsWith("'")))
+    ) {
+        $Value = $Value.Substring(1, $Value.Length - 2)
+    }
+
+    $EnvValues[$Key] = $Value
+}
+
+$WE = $EnvValues["WE"]
+if ([string]::IsNullOrWhiteSpace($WE)) {
+    throw "WE is missing from .env. Add: WE=C:\path\to\wallpaper_engine\projects\myprojects\sonic-topography"
+}
+
+$WE = [Environment]::ExpandEnvironmentVariables($WE)
 
 $Branch = "enhanced-audio-v2"
 $BuildDir = ".\dist-wallpaper"
@@ -16,9 +59,8 @@ $ProjectFile = Join-Path $BuildDir "project.json"
 $Vite = ".\node_modules\.bin\vite.cmd"
 $Finalizer = ".\scripts\finalize-wallpaper-project.mjs"
 
-if ($WE -eq "<SET_WALLPAPER_ENGINE_PROJECT_PATH_HERE>" -or [string]::IsNullOrWhiteSpace($WE)) {
-    throw "Set the `$WE variable at the top of update.ps1 to your Wallpaper Engine project directory first."
-}
+Write-Host "`nWallpaper Engine target:" -ForegroundColor Yellow
+Write-Host $WE
 
 Write-Host "`n[1/7] Updating $Branch..." -ForegroundColor Cyan
 
