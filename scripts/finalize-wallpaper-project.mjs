@@ -52,9 +52,19 @@ configure('gridSize', { index: 0, order: 100, text: 'Render Resolution' });
 configure('sep_appearance', { order: 198, text: ' ' });
 configure('sep_appearance_title', { order: 199, text: '=== Appearance ===' });
 configure('theme', { index: 0, order: 200, text: 'Color Theme' });
-configure('themeCycleInterval', { index: 1, order: 201, text: 'Cycle Interval (s)' });
+configure('themeCycleInterval', {
+  index: 1,
+  order: 201,
+  text: 'Cycle Interval (s)',
+  step: 5,
+});
 configure('peakColorEnabled', { index: 2, order: 202, text: 'Peak Color' });
-configure('peakColorIntensity', { index: 3, order: 203, text: 'Peak Color Intensity' });
+configure('peakColorIntensity', {
+  index: 3,
+  order: 203,
+  text: 'Peak Color Intensity',
+  step: 0.05,
+});
 
 configure('topAccentEnabled', {
   index: 4,
@@ -101,7 +111,7 @@ configure('topAccentDensity', {
   text: 'Accent Density',
   min: 0.01,
   max: 0.20,
-  step: 0.005,
+  step: 0.0025,
 });
 
 configure('topAccentIntensity', {
@@ -110,7 +120,7 @@ configure('topAccentIntensity', {
   text: 'Accent Strength',
   min: 0,
   max: 1.5,
-  step: 0.05,
+  step: 0.025,
 });
 
 // ---------------------------------------------------------------------------
@@ -118,19 +128,31 @@ configure('topAccentIntensity', {
 // ---------------------------------------------------------------------------
 configure('sep_audio', { order: 298, text: ' ' });
 configure('sep_audio_title', { order: 299, text: '=== Audio Response ===' });
-configure('audioIntensity', { index: 0, order: 300, text: 'Audio Intensity' });
-configure('responseRange', { index: 1, order: 301, text: 'Response Range' });
+configure('audioIntensity', {
+  index: 0,
+  order: 300,
+  text: 'Audio Intensity',
+  step: 0.05,
+});
+configure('responseRange', {
+  index: 1,
+  order: 301,
+  text: 'Response Range',
+  step: 0.05,
+});
 
 configure('visualAttackMs', {
   index: 2,
   order: 302,
   text: 'Visual Attack (ms)',
+  step: 2,
 });
 
 configure('visualReleaseMs', {
   index: 3,
   order: 303,
   text: 'Visual Release (ms)',
+  step: 5,
 });
 
 configure('stereoSpatialEnabled', {
@@ -145,7 +167,7 @@ configure('stereoSpatialStrength', {
   text: 'Stereo Strength',
   min: 0,
   max: 1.5,
-  step: 0.05,
+  step: 0.025,
 });
 
 configure('spectralMemoryEnabled', {
@@ -160,7 +182,7 @@ configure('spectralMemoryStrength', {
   text: 'Spectral Memory Strength',
   min: 0,
   max: 1.5,
-  step: 0.05,
+  step: 0.025,
 });
 
 configure('terrainCoherenceEnabled', {
@@ -175,7 +197,7 @@ configure('terrainCoherenceStrength', {
   text: 'Terrain Coherence Strength',
   min: 0,
   max: 1.5,
-  step: 0.05,
+  step: 0.025,
 });
 
 // ---------------------------------------------------------------------------
@@ -184,8 +206,18 @@ configure('terrainCoherenceStrength', {
 configure('sep_ripple', { order: 398, text: ' ' });
 configure('sep_ripple_title', { order: 399, text: '=== Effect-Ripple ===' });
 configure('pulseEnabled', { index: 0, order: 400, text: 'Enable Ripple' });
-configure('pulseSensitivity', { index: 1, order: 401, text: 'Ripple Sensitivity' });
-configure('pulseCooldown', { index: 2, order: 402, text: 'Ripple Cooldown (frames)' });
+configure('pulseSensitivity', {
+  index: 1,
+  order: 401,
+  text: 'Ripple Sensitivity',
+  step: 0.005,
+});
+configure('pulseCooldown', {
+  index: 2,
+  order: 402,
+  text: 'Ripple Cooldown (frames)',
+  step: 1,
+});
 
 configure('rhythmSyncEnabled', {
   index: 3,
@@ -199,24 +231,132 @@ configure('beatTriggerStrength', {
   text: 'Beat Trigger Strength',
   min: 0.25,
   max: 2.0,
-  step: 0.05,
+  step: 0.025,
 });
 
-// Normalize the remaining original section headings to English while keeping
-// their original order and grouping.
-const originalSections = [
-  ['sep_meteor', 498, ' '],
-  ['sep_meteor_title', 499, '=== Effect-Meteor ==='],
-  ['sep_idle', 598, ' '],
-  ['sep_idle_title', 599, '=== Effect-Idle Wave ==='],
-  ['sep_camera', 698, ' '],
-  ['sep_camera_title', 699, '=== Camera ==='],
-  ['sep_player', 798, ' '],
-  ['sep_player_title', 799, '=== Player ==='],
-];
+// ---------------------------------------------------------------------------
+// Effect-Meteor
+// ---------------------------------------------------------------------------
+configure('sep_meteor', { order: 498, text: ' ' });
+configure('sep_meteor_title', { order: 499, text: '=== Effect-Meteor ===' });
+if (properties.meteorEnabled) {
+  configure('meteorEnabled', { index: 0, order: 500, text: 'Enable Meteor' });
+}
+if (properties.meteorSensitivity) {
+  configure('meteorSensitivity', {
+    index: 1,
+    order: 501,
+    text: 'Meteor Sensitivity',
+    step: 0.01,
+  });
+}
+if (properties.meteorCooldown) {
+  configure('meteorCooldown', {
+    index: 2,
+    order: 502,
+    text: 'Meteor Cooldown (frames)',
+    step: 1,
+  });
+}
+if (properties.meteorClickEnabled) {
+  configure('meteorClickEnabled', { index: 3, order: 503, text: 'Click Meteor' });
+}
 
-for (const [name, order, text] of originalSections) {
-  if (properties[name]) configure(name, { order, text });
+// ---------------------------------------------------------------------------
+// Effect-Idle Wave
+// ---------------------------------------------------------------------------
+configure('sep_idle', { order: 598, text: ' ' });
+configure('sep_idle_title', { order: 599, text: '=== Effect-Idle Wave ===' });
+if (properties.idleWaveEnabled) {
+  configure('idleWaveEnabled', { index: 0, order: 600, text: 'Idle Wave' });
+}
+if (properties.idleWaveDebounce) {
+  configure('idleWaveDebounce', {
+    index: 1,
+    order: 601,
+    text: 'Idle Debounce (s)',
+    step: 0.1,
+  });
+}
+if (properties.idleWaveFadeDuration) {
+  configure('idleWaveFadeDuration', {
+    index: 2,
+    order: 602,
+    text: 'Idle Fade (s)',
+    step: 0.1,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Camera
+// ---------------------------------------------------------------------------
+configure('sep_camera', { order: 698, text: ' ' });
+configure('sep_camera_title', { order: 699, text: '=== Camera ===' });
+if (properties.cameraDistance) {
+  configure('cameraDistance', {
+    index: 0,
+    order: 700,
+    text: 'Camera Distance',
+    step: 1,
+  });
+}
+if (properties.cameraAngleX) {
+  configure('cameraAngleX', {
+    index: 1,
+    order: 701,
+    text: 'Horizontal Angle',
+    step: 1,
+  });
+}
+if (properties.cameraAngleY) {
+  configure('cameraAngleY', {
+    index: 2,
+    order: 702,
+    text: 'Vertical Angle',
+    step: 1,
+  });
+}
+if (properties.autoRotateEnabled) {
+  configure('autoRotateEnabled', { index: 3, order: 703, text: 'Auto Rotate' });
+}
+if (properties.autoRotateSpeed) {
+  configure('autoRotateSpeed', {
+    index: 4,
+    order: 704,
+    text: 'Rotate Speed',
+    step: 0.5,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Player
+// ---------------------------------------------------------------------------
+configure('sep_player', { order: 798, text: ' ' });
+configure('sep_player_title', { order: 799, text: '=== Player ===' });
+if (properties.showPlayerController) {
+  configure('showPlayerController', { index: 0, order: 800, text: 'Show Player' });
+}
+if (properties.showAlbumCover) {
+  configure('showAlbumCover', { index: 1, order: 801, text: 'Show Album Cover' });
+}
+if (properties.controllerSize) {
+  configure('controllerSize', { index: 2, order: 802, text: 'Controller Size' });
+}
+if (properties.controllerX) {
+  configure('controllerX', {
+    index: 3,
+    order: 803,
+    text: 'Controller X (%)',
+    step: 0.5,
+  });
+}
+if (properties.controllerY) {
+  configure('controllerY', {
+    index: 4,
+    order: 804,
+    text: 'Controller Y (%)',
+    step: 0.5,
+  });
 }
 
 // Physically sort the JSON properties as well as assigning order numbers. This
@@ -250,4 +390,4 @@ if (fs.existsSync(htmlPath)) {
   fs.writeFileSync(htmlPath, html, 'utf8');
 }
 
-console.log('Finalized fine-grained Wallpaper Engine settings in original sections.');
+console.log('Finalized fine-grained Wallpaper Engine settings with refined slider steps.');
