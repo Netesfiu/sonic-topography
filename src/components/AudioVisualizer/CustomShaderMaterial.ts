@@ -374,33 +374,11 @@ export const MapShaderMaterial = shaderMaterial(
          // 峰值颜色额外增强顶面
          topIntensity += clamp(peakBlend * 0.4, 0.0, 1.0);
          
-         // Keep the base top face stable. Music accents are injected immediately
-         // after this assignment by the Wallpaper Engine build transform.
+         // Keep the top face deliberately uniform. The Wallpaper Engine build
+         // transform injects music-selected lamp coloring immediately after this
+         // assignment. The physical gap between pillars is the lamp bezel, so no
+         // UV-scale rim/core pattern is needed and tiny distant panels stay solid.
          finalColor = mix(cBase2, currentGlow, topIntensity);
-
-         // Lamp-panel treatment inspired by inset LED floor panels: a dark frame,
-         // broad luminous surface and soft center bloom. Because the enhanced
-         // accent transform runs directly above this block, selected music panels
-         // keep their accent hue while gaining this smooth lamp profile.
-         vec2 panelCoord = abs(vUv - vec2(0.5)) * 2.0;
-         float panelEdgeDistance = max(panelCoord.x, panelCoord.y);
-         float panelSurface = 1.0 - smoothstep(0.72, 0.96, panelEdgeDistance);
-         float panelCore = 1.0 - smoothstep(0.20, 0.86, panelEdgeDistance);
-         float panelRim = smoothstep(0.74, 0.88, panelEdgeDistance) *
-                          (1.0 - smoothstep(0.88, 0.98, panelEdgeDistance));
-
-         vec3 lampColor = finalColor;
-         finalColor *= mix(0.42, 1.0, panelSurface);
-         finalColor = mix(finalColor, lampColor * 1.10, panelCore * 0.18);
-         finalColor += lampColor * panelRim * 0.10;
-         
-         // Restrained structural rim only. The former Air/Presence/Brilliance
-         // sparkle and micro-flash paths are intentionally removed: illuminated
-         // panels should read as lamps, not glittering disco-ball facets.
-         float edgeX = smoothstep(0.04, 0.01, vUv.x) + smoothstep(0.96, 0.99, vUv.x);
-         float edgeY = smoothstep(0.04, 0.01, vUv.y) + smoothstep(0.96, 0.99, vUv.y);
-         float edge = min(edgeX + edgeY, 1.0);
-         finalColor += lampColor * edge * 0.16 * (topIntensity + 0.2);
 
       } else {
          // Side faces
