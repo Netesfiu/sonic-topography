@@ -1,5 +1,6 @@
 import baseConfig from './vite.wallpaper.config';
 import type { Plugin, UserConfig } from 'vite';
+import { mkdirSync } from 'fs';
 
 /**
  * Keeps the music-lamp effect visually consistent across render resolutions.
@@ -15,7 +16,13 @@ import type { Plugin, UserConfig } from 'vite';
  */
 const adaptiveLampResolutionPlugin: Plugin = {
   name: 'adaptive-lamp-resolution',
-  enforce: 'pre',
+  // Run after the base transforms so this layer can refine the generated code,
+  // and after the base clean-dist buildStart hook so we can recreate the output
+  // directory even when Rollup aborts before writing its normal bundle output.
+  enforce: 'post',
+  buildStart() {
+    mkdirSync('dist-wallpaper', { recursive: true });
+  },
   transform(code, id) {
     const normalizedId = id.replace(/\\/g, '/').split('?')[0];
 
