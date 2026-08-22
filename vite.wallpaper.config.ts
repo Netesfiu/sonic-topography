@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { execFileSync } from 'child_process';
 import { defineConfig } from 'vite';
 import { copyFileSync, renameSync, existsSync, readdirSync, rmdirSync, readFileSync, writeFileSync, rmSync } from 'fs';
 
@@ -8,6 +9,18 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    {
+      name: 'apply-enhanced-wallpaper-settings',
+      buildStart() {
+        // Keep direct Vite builds reproducible: users do not need to remember
+        // to run the enhanced-settings patch manually before every build.
+        execFileSync(
+          process.execPath,
+          [path.resolve(__dirname, 'scripts/apply-enhanced-settings.mjs')],
+          { cwd: __dirname, stdio: 'inherit' },
+        );
+      },
+    },
     {
       name: 'clean-dist-wallpaper',
       buildStart() {
