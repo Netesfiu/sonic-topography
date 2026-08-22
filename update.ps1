@@ -57,7 +57,7 @@ $Branch = "enhanced-audio-v2"
 $BuildDir = ".\dist-wallpaper"
 $ProjectFile = Join-Path $BuildDir "project.json"
 $Vite = ".\node_modules\.bin\vite.cmd"
-$ViteConfig = ".\vite.wallpaper.adaptive.config.ts"
+$ViteConfig = ".\vite.wallpaper.lamps.config.ts"
 $Finalizer = ".\scripts\finalize-wallpaper-project.mjs"
 
 Write-Host "`nWallpaper Engine target:" -ForegroundColor Yellow
@@ -91,7 +91,7 @@ if (!(Test-Path $Vite)) {
 }
 
 if (!(Test-Path $ViteConfig)) {
-    throw "Adaptive Wallpaper Engine Vite config was not found at $ViteConfig."
+    throw "Lamp Wallpaper Engine Vite config was not found at $ViteConfig."
 }
 
 & $Vite build --config $ViteConfig
