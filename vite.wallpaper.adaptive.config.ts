@@ -27,25 +27,21 @@ const adaptiveLampResolutionPlugin: Plugin = {
     const normalizedId = id.replace(/\\/g, '/').split('?')[0];
 
     if (normalizedId.endsWith('/wallpaper/main.tsx')) {
-      // Match the UI range. The old runtime clamp made the lower part of the
-      // Accent Density slider a dead zone (everything below 0.005 became 0.005).
-      const oldClamp =
-        'engine.topAccentDensity = Math.max(0.005, Math.min(0.25, Number(properties.topAccentDensity.value)));';
-      const newClamp =
-        'engine.topAccentDensity = Math.max(0.0005, Math.min(0.05, Number(properties.topAccentDensity.value)));';
+      // Match the UI range. Do not depend on the exact formatting produced by
+      // earlier Vite transforms: replace the complete density assignment line.
+      const densityAssignment =
+        /^(\s*)engine\.topAccentDensity\s*=\s*.*properties\.topAccentDensity\.value.*;\s*$/m;
+      const match = code.match(densityAssignment);
 
-      if (code.includes(oldClamp)) {
-        return { code: code.replace(oldClamp, newClamp), map: null };
+      if (match) {
+        const indent = match[1] ?? '';
+        const replacement =
+          `${indent}engine.topAccentDensity = Math.max(0.0005, Math.min(0.05, Number(properties.topAccentDensity.value)));`;
+        return { code: code.replace(densityAssignment, replacement), map: null };
       }
 
-      // If the base transform changes later, fail loudly rather than silently
-      // reintroducing a broken density slider.
-      if (
-        code.includes('properties.topAccentDensity?.value') &&
-        !code.includes(newClamp)
-      ) {
-        throw new Error('Could not normalize the Accent Density runtime clamp.');
-      }
+      // A source without the enhanced density handler is valid before the base
+      // injector runs; in that case there is simply nothing for this layer to fix.
       return null;
     }
 
