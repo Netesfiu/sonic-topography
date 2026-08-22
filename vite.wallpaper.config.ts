@@ -20,9 +20,6 @@ const enhancedPropertyHandlers = `    // Enhanced v2 audio controls
     if (properties.beatTriggerStrength?.value !== undefined) {
       engine.beatTriggerStrength = Math.max(0, Number(properties.beatTriggerStrength.value));
     }
-    if (properties.sparkleIntensity?.value !== undefined) {
-      engine.sparkleIntensity = Math.max(0, Math.min(1, Number(properties.sparkleIntensity.value)));
-    }
     if (properties.visualAttackMs?.value !== undefined) {
       engine.visualAttack = Math.max(0.005, Number(properties.visualAttackMs.value) / 1000);
     }
@@ -52,6 +49,24 @@ const enhancedPropertyHandlers = `    // Enhanced v2 audio controls
     }
     if (properties.membraneStrength?.value !== undefined) {
       engine.membraneStrength = Math.max(0, Math.min(1.5, Number(properties.membraneStrength.value)));
+    }
+    if (properties.topAccentEnabled?.value !== undefined) {
+      engine.topAccentEnabled = properties.topAccentEnabled.value as boolean;
+    }
+    if (properties.topAccentTrigger?.value !== undefined) {
+      engine.topAccentTrigger = String(properties.topAccentTrigger.value);
+    }
+    if (properties.topAccentColorMode?.value !== undefined) {
+      engine.topAccentColorMode = String(properties.topAccentColorMode.value);
+    }
+    if (properties.topAccentCustomColor?.value !== undefined) {
+      engine.topAccentCustomColor = String(properties.topAccentCustomColor.value);
+    }
+    if (properties.topAccentDensity?.value !== undefined) {
+      engine.topAccentDensity = Math.max(0.005, Math.min(0.25, Number(properties.topAccentDensity.value)));
+    }
+    if (properties.topAccentIntensity?.value !== undefined) {
+      engine.topAccentIntensity = Math.max(0, Math.min(1.5, Number(properties.topAccentIntensity.value)));
     }
 `;
 
@@ -117,19 +132,86 @@ function buildEnhancedProject() {
       max: 2.0,
       step: 0.05,
     },
-    sparkleIntensity: {
-      index: 2,
+
+    sep_top_accent: {
       order: 352,
-      text: 'Sparkle Intensity',
+      text: ' ',
+      type: 'text',
+      value: '',
+    },
+    sep_top_accent_title: {
+      order: 353,
+      text: '--- Music Top Accents ---',
+      type: 'text',
+      value: '',
+    },
+    topAccentEnabled: {
+      index: 2,
+      order: 354,
+      text: 'Music Top Accents',
+      type: 'bool',
+      value: true,
+    },
+    topAccentTrigger: {
+      index: 3,
+      order: 355,
+      text: 'Accent Trigger',
+      type: 'combo',
+      value: 'percussion',
+      options: [
+        { label: 'Percussion / Transients', value: 'percussion' },
+        { label: 'Beat', value: 'beat' },
+        { label: 'Bass', value: 'bass' },
+        { label: 'Drop', value: 'drop' },
+        { label: 'Vocal-like (heuristic)', value: 'vocal' },
+        { label: 'High Frequencies', value: 'highs' },
+        { label: 'Overall Energy', value: 'energy' },
+      ],
+    },
+    topAccentColorMode: {
+      index: 4,
+      order: 356,
+      text: 'Accent Color Source',
+      type: 'combo',
+      value: 'theme',
+      options: [
+        { label: 'Theme Top-end Hue', value: 'theme' },
+        { label: 'Theme Peak Color', value: 'peak' },
+        { label: 'Random Color per Event', value: 'random' },
+        { label: 'Custom Color', value: 'custom' },
+      ],
+    },
+    topAccentCustomColor: {
+      index: 5,
+      order: 357,
+      text: 'Custom Accent Color',
+      type: 'color',
+      value: '0.15 0.85 1.0',
+    },
+    topAccentDensity: {
+      index: 6,
+      order: 358,
+      text: 'Accent Panel Density',
       type: 'slider',
-      value: 0.12,
+      value: 0.055,
+      min: 0.01,
+      max: 0.2,
+      step: 0.005,
+    },
+    topAccentIntensity: {
+      index: 7,
+      order: 359,
+      text: 'Top Accent Intensity',
+      type: 'slider',
+      value: 0.8,
       min: 0,
-      max: 1,
+      max: 1.5,
       step: 0.05,
     },
+
     visualAttackMs: {
-      index: 3,
-      order: 353,
+      index: 8,
+      order: 360,
       text: 'Visual Attack (ms)',
       type: 'slider',
       value: 45,
@@ -138,8 +220,8 @@ function buildEnhancedProject() {
       step: 5,
     },
     visualReleaseMs: {
-      index: 4,
-      order: 354,
+      index: 9,
+      order: 361,
       text: 'Visual Release (ms)',
       type: 'slider',
       value: 160,
@@ -148,15 +230,15 @@ function buildEnhancedProject() {
       step: 10,
     },
     spectralMemoryEnabled: {
-      index: 5,
-      order: 355,
+      index: 10,
+      order: 362,
       text: 'Spectral Memory',
       type: 'bool',
       value: true,
     },
     spectralMemoryStrength: {
-      index: 6,
-      order: 356,
+      index: 11,
+      order: 363,
       text: 'Spectral Memory Strength',
       type: 'slider',
       value: 0.45,
@@ -165,15 +247,15 @@ function buildEnhancedProject() {
       step: 0.05,
     },
     stereoSpatialEnabled: {
-      index: 7,
-      order: 357,
+      index: 12,
+      order: 364,
       text: 'Stereo Spatialization',
       type: 'bool',
       value: true,
     },
     stereoSpatialStrength: {
-      index: 8,
-      order: 358,
+      index: 13,
+      order: 365,
       text: 'Stereo Spatial Strength',
       type: 'slider',
       value: 0.55,
@@ -182,15 +264,15 @@ function buildEnhancedProject() {
       step: 0.05,
     },
     terrainCoherenceEnabled: {
-      index: 9,
-      order: 359,
+      index: 14,
+      order: 366,
       text: 'Music-driven Terrain Coherence',
       type: 'bool',
       value: true,
     },
     terrainCoherenceStrength: {
-      index: 10,
-      order: 360,
+      index: 15,
+      order: 367,
       text: 'Terrain Coherence Strength',
       type: 'slider',
       value: 0.65,
@@ -199,15 +281,15 @@ function buildEnhancedProject() {
       step: 0.05,
     },
     membraneEnabled: {
-      index: 11,
-      order: 361,
+      index: 16,
+      order: 368,
       text: 'Rubber Membrane Center',
       type: 'bool',
       value: false,
     },
     membraneStrength: {
-      index: 12,
-      order: 362,
+      index: 17,
+      order: 369,
       text: 'Membrane Bounce Strength',
       type: 'slider',
       value: 0.75,
@@ -216,6 +298,10 @@ function buildEnhancedProject() {
       step: 0.05,
     },
   });
+
+  // Remove the old white sparkle control from generated builds. The new
+  // top-surface accent system replaces it completely.
+  delete properties.sparkleIntensity;
 
   for (const property of Object.values(properties) as any[]) {
     if (!property || typeof property !== 'object') continue;
@@ -236,7 +322,7 @@ function buildEnhancedProject() {
   project.name = 'Sonic Topography Enhanced v2';
   project.title = 'Sonic Topography Enhanced v2';
   project.description =
-    'Enhanced 3D audio-reactive topography with rhythm analysis, spectral memory, stereo spatialization, terrain coherence, optional membrane dynamics, ripples and meteors.';
+    'Enhanced 3D audio-reactive topography with rhythm analysis, spectral memory, stereo spatialization, terrain coherence, optional membrane dynamics and music-selectable top-surface accents.';
   project.version = 2;
   delete project.workshopid;
   delete project.workshopurl;
@@ -278,13 +364,39 @@ export default defineConfig({
 
           let next = code;
 
+          // Disable the original additive sparkle paths. The new accent system
+          // changes top-face color instead of adding white light/noise.
+          next = next.replace(
+            '  public sparkleIntensity = 0.12;',
+            '  public sparkleIntensity = 0.0;',
+          );
+
           const tuningAnchor = /(  public visualAttack = 0\.045;\r?\n  public visualRelease = 0\.16;\r?\n)/;
           if (!tuningAnchor.test(next)) {
             throw new Error('Could not locate AudioEngine tuning insertion point.');
           }
           next = next.replace(
             tuningAnchor,
-            `$1\n  // Slow, continuous visual dynamics. These intentionally avoid beat-rate flashing.\n  public spectralMemoryEnabled = true;\n  public spectralMemoryStrength = 0.45;\n  public stereoSpatialEnabled = true;\n  public stereoSpatialStrength = 0.55;\n  public terrainCoherenceEnabled = true;\n  public terrainCoherenceStrength = 0.65;\n  public membraneEnabled = false;\n  public membraneStrength = 0.75;\n`,
+            `$1
+  // Slow, continuous visual dynamics. These intentionally avoid beat-rate flashing.
+  public spectralMemoryEnabled = true;
+  public spectralMemoryStrength = 0.45;
+  public stereoSpatialEnabled = true;
+  public stereoSpatialStrength = 0.55;
+  public terrainCoherenceEnabled = true;
+  public terrainCoherenceStrength = 0.65;
+  public membraneEnabled = false;
+  public membraneStrength = 0.75;
+
+  // Music-selectable top-surface accents. "vocal" is a spectral heuristic,
+  // not semantic source separation, because Wallpaper Engine exposes FFT magnitudes.
+  public topAccentEnabled = true;
+  public topAccentTrigger = 'percussion';
+  public topAccentColorMode = 'theme';
+  public topAccentCustomColor = '0.15 0.85 1.0';
+  public topAccentDensity = 0.055;
+  public topAccentIntensity = 0.8;
+`,
           );
 
           const spectrumAnchor = /(  private readonly prevSpectrum = new Float32Array\(64\);\r?\n)/;
@@ -293,32 +405,88 @@ export default defineConfig({
           }
           next = next.replace(
             spectrumAnchor,
-            `$1\n  // Six smooth spectral-memory layers (low/mid/high). Inner terrain uses the\n  // fast layers; outer terrain uses progressively slower layers up to ~3.2 s.\n  private readonly spectralMemory = new Float32Array(18);\n  private membranePosition = 0;\n  private membraneVelocity = 0;\n  private membraneOffset = 0;\n`,
+            `$1
+  // Six smooth spectral-memory layers (low/mid/high). Inner terrain uses the
+  // fast layers; outer terrain uses progressively slower layers up to ~3.2 s.
+  private readonly spectralMemory = new Float32Array(18);
+  private membranePosition = 0;
+  private membraneVelocity = 0;
+  private membraneOffset = 0;
+`,
           );
 
           const targetAnchor = /(    this\.targetData = \{[\s\S]*?      spectralCentroid,\r?\n    \};\r?\n)/;
           if (!targetAnchor.test(next)) {
             throw new Error('Could not locate AudioEngine targetData block for spectral memory.');
           }
-          const memoryUpdate = `\n    // Multi-timescale spectral memory: no discrete history shifts, therefore no\n    // temporal stepping. The outer visual layers simply remember audio longer.\n    if (this.spectralMemoryEnabled) {\n      const memoryTargets = [\n        clamp01((subBass + bass) * 0.5),\n        clamp01((lowMid + mid + highMid) / 3),\n        clamp01((presence + brilliance + air) / 3),\n      ];\n      const memoryTaus = [0.18, 0.38, 0.72, 1.2, 2.0, 3.2];\n      for (let layer = 0; layer < 6; layer++) {\n        const alpha = emaAlpha(dt, memoryTaus[layer]);\n        for (let band = 0; band < 3; band++) {\n          const idx = layer * 3 + band;\n          this.spectralMemory[idx] +=\n            (memoryTargets[band] - this.spectralMemory[idx]) * alpha;\n        }\n      }\n    }\n`;
+          const memoryUpdate = `
+    // Multi-timescale spectral memory: no discrete history shifts, therefore no
+    // temporal stepping. The outer visual layers simply remember audio longer.
+    if (this.spectralMemoryEnabled) {
+      const memoryTargets = [
+        clamp01((subBass + bass) * 0.5),
+        clamp01((lowMid + mid + highMid) / 3),
+        clamp01((presence + brilliance + air) / 3),
+      ];
+      const memoryTaus = [0.18, 0.38, 0.72, 1.2, 2.0, 3.2];
+      for (let layer = 0; layer < 6; layer++) {
+        const alpha = emaAlpha(dt, memoryTaus[layer]);
+        for (let band = 0; band < 3; band++) {
+          const idx = layer * 3 + band;
+          this.spectralMemory[idx] +=
+            (memoryTargets[band] - this.spectralMemory[idx]) * alpha;
+        }
+      }
+    }
+`;
           next = next.replace(targetAnchor, `$1${memoryUpdate}`);
 
           const dtAnchor = /(    const dt = Math\.max\(0\.00025, Math\.min\(0\.1, deltaTime \|\| 0\.016\)\);\r?\n)/;
           if (!dtAnchor.test(next)) {
             throw new Error('Could not locate AudioEngine render dt for membrane physics.');
           }
-          const membraneUpdate = `\n    // Optional under-damped central membrane. It follows raw sub-bass targets,\n    // so a sudden stop can carry momentum through neutral into a brief negative dip.\n    if (this.membraneEnabled) {\n      const target = clamp01(this.targetData.subBass);\n      const stiffness = 160.0;\n      const damping = 14.0;\n      const acceleration =\n        (target - this.membranePosition) * stiffness -\n        this.membraneVelocity * damping;\n      this.membraneVelocity += acceleration * dt;\n      this.membranePosition += this.membraneVelocity * dt;\n      this.membraneOffset = Math.max(\n        -0.38,\n        Math.min(0.45, (this.membranePosition - target) * this.membraneStrength),\n      );\n    } else {\n      this.membranePosition = clamp01(this.targetData.subBass);\n      this.membraneVelocity = 0;\n      this.membraneOffset = 0;\n    }\n`;
+          const membraneUpdate = `
+    // Optional under-damped central membrane. It follows raw sub-bass targets,
+    // so a sudden stop can carry momentum through neutral into a brief negative dip.
+    if (this.membraneEnabled) {
+      const target = clamp01(this.targetData.subBass);
+      const stiffness = 160.0;
+      const damping = 14.0;
+      const acceleration =
+        (target - this.membranePosition) * stiffness -
+        this.membraneVelocity * damping;
+      this.membraneVelocity += acceleration * dt;
+      this.membranePosition += this.membraneVelocity * dt;
+      this.membraneOffset = Math.max(
+        -0.38,
+        Math.min(0.45, (this.membranePosition - target) * this.membraneStrength),
+      );
+    } else {
+      this.membranePosition = clamp01(this.targetData.subBass);
+      this.membraneVelocity = 0;
+      this.membraneOffset = 0;
+    }
+`;
           next = next.replace(dtAnchor, `$1${membraneUpdate}`);
 
           const idleAnchor = /(  public getIdleWaveIntensity\(deltaTime: number = 0\.016\): number \{)/;
           if (!idleAnchor.test(next)) {
             throw new Error('Could not locate AudioEngine public getter insertion point.');
           }
-          const getters = `  public getSpectralMemory(): Float32Array {\n    return this.spectralMemory;\n  }\n\n  public getMembraneOffset(): number {\n    return this.membraneEnabled ? this.membraneOffset : 0;\n  }\n\n`;
+          const getters = `  public getSpectralMemory(): Float32Array {
+    return this.spectralMemory;
+  }
+
+  public getMembraneOffset(): number {
+    return this.membraneEnabled ? this.membraneOffset : 0;
+  }
+
+`;
           next = next.replace(idleAnchor, `${getters}$1`);
 
           if (
             !next.includes('public spectralMemoryEnabled = true;') ||
+            !next.includes('public topAccentTrigger') ||
             !next.includes('private readonly spectralMemory') ||
             !next.includes('getMembraneOffset()')
           ) {
@@ -339,7 +507,25 @@ export default defineConfig({
           }
           next = next.replace(
             defaultsAnchor,
-            `$1    uStereoPan: 0,\n    uStereoWidth: 0,\n    uStereoSpatialStrength: 0,\n    uTerrainCoherenceStrength: 0,\n    uSpectralMemoryStrength: 0,\n    uMembraneOffset: 0,\n    uMemory0: new THREE.Vector3(),\n    uMemory1: new THREE.Vector3(),\n    uMemory2: new THREE.Vector3(),\n    uMemory3: new THREE.Vector3(),\n    uMemory4: new THREE.Vector3(),\n    uMemory5: new THREE.Vector3(),\n`,
+            `$1    uStereoPan: 0,
+    uStereoWidth: 0,
+    uStereoSpatialStrength: 0,
+    uTerrainCoherenceStrength: 0,
+    uSpectralMemoryStrength: 0,
+    uMembraneOffset: 0,
+    uMemory0: new THREE.Vector3(),
+    uMemory1: new THREE.Vector3(),
+    uMemory2: new THREE.Vector3(),
+    uMemory3: new THREE.Vector3(),
+    uMemory4: new THREE.Vector3(),
+    uMemory5: new THREE.Vector3(),
+    uTopAccentLevel: 0,
+    uTopAccentDensity: 0.055,
+    uTopAccentIntensity: 0.8,
+    uTopAccentColorMode: 0,
+    uTopAccentRandomColor: new THREE.Color(0.2, 0.8, 1.0),
+    uTopAccentCustomColor: new THREE.Color(0.15, 0.85, 1.0),
+`,
           );
 
           const declarationsAnchor = /(    uniform float uHalfExtent;\r?\n)/;
@@ -348,21 +534,102 @@ export default defineConfig({
           }
           next = next.replace(
             declarationsAnchor,
-            `$1    uniform float uStereoPan;\n    uniform float uStereoWidth;\n    uniform float uStereoSpatialStrength;\n    uniform float uTerrainCoherenceStrength;\n    uniform float uSpectralMemoryStrength;\n    uniform float uMembraneOffset;\n    uniform vec3 uMemory0;\n    uniform vec3 uMemory1;\n    uniform vec3 uMemory2;\n    uniform vec3 uMemory3;\n    uniform vec3 uMemory4;\n    uniform vec3 uMemory5;\n`,
+            `$1    uniform float uStereoPan;
+    uniform float uStereoWidth;
+    uniform float uStereoSpatialStrength;
+    uniform float uTerrainCoherenceStrength;
+    uniform float uSpectralMemoryStrength;
+    uniform float uMembraneOffset;
+    uniform vec3 uMemory0;
+    uniform vec3 uMemory1;
+    uniform vec3 uMemory2;
+    uniform vec3 uMemory3;
+    uniform vec3 uMemory4;
+    uniform vec3 uMemory5;
+`,
           );
 
           const randomAnchor = /(      float rnd = random\(pos2D\);\r?\n)/;
           if (!randomAnchor.test(next)) {
             throw new Error('Could not locate shader spatial-dynamics insertion point.');
           }
-          const spatialSetup = `\n      // Overall pan smoothly biases mid/high terrain left or right. Stereo width\n      // increases the spatial reach without moving the sub-bass core away from center.\n      float stereoX = clamp(pos2D.x / max(uHalfExtent, 0.001), -1.0, 1.0);\n      float stereoSpatial = 1.0 +\n        stereoX * uStereoPan * uStereoSpatialStrength * (0.35 + uStereoWidth * 0.35);\n      float coherence = clamp(\n        (uSmoothness * 0.72 + (1.0 - uDensity) * 0.28) * uTerrainCoherenceStrength,\n        0.0,\n        1.0\n      );\n`;
+          const spatialSetup = `
+      // Overall pan smoothly biases mid/high terrain left or right. Stereo width
+      // increases the spatial reach without moving the sub-bass core away from center.
+      float stereoX = clamp(pos2D.x / max(uHalfExtent, 0.001), -1.0, 1.0);
+      float stereoSpatial = 1.0 +
+        stereoX * uStereoPan * uStereoSpatialStrength * (0.35 + uStereoWidth * 0.35);
+      float coherence = clamp(
+        (uSmoothness * 0.72 + (1.0 - uDensity) * 0.28) * uTerrainCoherenceStrength,
+        0.0,
+        1.0
+      );
+`;
           next = next.replace(randomAnchor, `$1${spatialSetup}`);
 
           const combineAnchor = /(      \/\/ Combine and apply intensity multiplier\r?\n      float audioElevation = \(subLift \+ bassLift \+ lowMidLift \+ midLift \+ highMidLift\) \* uAudioIntensity;\r?\n)/;
           if (!combineAnchor.test(next)) {
             throw new Error('Could not locate shader audio-elevation block.');
           }
-          const continuousTerrain = `\n      // Stereo is intentionally strongest in the mid/high structures.\n      lowMidLift *= mix(1.0, stereoSpatial, 0.35);\n      midLift *= mix(1.0, stereoSpatial, 0.65);\n      highMidLift *= mix(1.0, stereoSpatial, 0.90);\n\n      // Coherent music produces broad geological forms; dense/rough music keeps\n      // more of the fragmented original topology. All transitions are continuous.\n      float coherenceField = (snoise(\n        pos2D * mix(0.085, 0.032, coherence) +\n        vec2(uTime * mix(0.10, 0.025, coherence), 0.0)\n      ) + 1.0) * 0.5;\n      float coherentBass = easeLift(uBass, 5.0) * bassRegion *\n        (0.68 + coherenceField * 0.32);\n      bassLift = mix(bassLift, coherentBass, coherence * 0.72);\n      midLift = mix(\n        midLift,\n        flowLift(uMid, 4.0) * (0.35 + coherenceField * 0.65) *\n          mix(1.0, stereoSpatial, 0.55),\n        coherence * 0.42\n      );\n      highMidLift *= mix(1.0, 0.58, coherence);\n\n      // Recompose after the stereo/coherence shaping above.\n      audioElevation = (subLift + bassLift + lowMidLift + midLift + highMidLift) *\n        uAudioIntensity;\n\n      // Six smooth temporal memory layers are mapped from center (recent) to\n      // perimeter (long memory). This leaves slowly fading spectral contours.\n      float memoryCoord = clamp(\n        centerDist / max(uHalfExtent * 0.72 * range, 0.001),\n        0.0,\n        0.999\n      ) * 5.0;\n      vec3 memoryBands;\n      if (memoryCoord < 1.0) memoryBands = mix(uMemory0, uMemory1, memoryCoord);\n      else if (memoryCoord < 2.0) memoryBands = mix(uMemory1, uMemory2, memoryCoord - 1.0);\n      else if (memoryCoord < 3.0) memoryBands = mix(uMemory2, uMemory3, memoryCoord - 2.0);\n      else if (memoryCoord < 4.0) memoryBands = mix(uMemory3, uMemory4, memoryCoord - 3.0);\n      else memoryBands = mix(uMemory4, uMemory5, memoryCoord - 4.0);\n\n      float radialNorm = clamp(centerDist / max(uHalfExtent * 0.72 * range, 0.001), 0.0, 1.0);\n      float memoryLowWeight = 1.0 - smoothstep(0.18, 0.62, radialNorm);\n      float memoryHighWeight = smoothstep(0.42, 0.92, radialNorm);\n      float memoryMidWeight = clamp(1.0 - abs(radialNorm - 0.5) * 2.0, 0.0, 1.0);\n      float memoryWeightSum = max(0.001, memoryLowWeight + memoryMidWeight + memoryHighWeight);\n      float memoryValue = (\n        memoryBands.x * memoryLowWeight +\n        memoryBands.y * memoryMidWeight +\n        memoryBands.z * memoryHighWeight\n      ) / memoryWeightSum;\n      float memoryTexture = 0.72 +\n        ((snoise(pos2D * 0.045 + vec2(uTime * 0.018, 0.0)) + 1.0) * 0.5) * 0.28;\n      audioElevation += memoryValue * memoryTexture * uSpectralMemoryStrength * 1.35;\n\n      // Optional center membrane displacement may become negative after a sharp\n      // bass stop, creating a rubber-sheet undershoot rather than a flash.\n      audioElevation += uMembraneOffset * subRegion * 4.2 * uAudioIntensity;\n`;
+          const continuousTerrain = `
+      // Stereo is intentionally strongest in the mid/high structures.
+      lowMidLift *= mix(1.0, stereoSpatial, 0.35);
+      midLift *= mix(1.0, stereoSpatial, 0.65);
+      highMidLift *= mix(1.0, stereoSpatial, 0.90);
+
+      // Coherent music produces broad geological forms; dense/rough music keeps
+      // more of the fragmented original topology. All transitions are continuous.
+      float coherenceField = (snoise(
+        pos2D * mix(0.085, 0.032, coherence) +
+        vec2(uTime * mix(0.10, 0.025, coherence), 0.0)
+      ) + 1.0) * 0.5;
+      float coherentBass = easeLift(uBass, 5.0) * bassRegion *
+        (0.68 + coherenceField * 0.32);
+      bassLift = mix(bassLift, coherentBass, coherence * 0.72);
+      midLift = mix(
+        midLift,
+        flowLift(uMid, 4.0) * (0.35 + coherenceField * 0.65) *
+          mix(1.0, stereoSpatial, 0.55),
+        coherence * 0.42
+      );
+      highMidLift *= mix(1.0, 0.58, coherence);
+
+      // Recompose after the stereo/coherence shaping above.
+      audioElevation = (subLift + bassLift + lowMidLift + midLift + highMidLift) *
+        uAudioIntensity;
+
+      // Six smooth temporal memory layers are mapped from center (recent) to
+      // perimeter (long memory). This leaves slowly fading spectral contours.
+      float memoryCoord = clamp(
+        centerDist / max(uHalfExtent * 0.72 * range, 0.001),
+        0.0,
+        0.999
+      ) * 5.0;
+      vec3 memoryBands;
+      if (memoryCoord < 1.0) memoryBands = mix(uMemory0, uMemory1, memoryCoord);
+      else if (memoryCoord < 2.0) memoryBands = mix(uMemory1, uMemory2, memoryCoord - 1.0);
+      else if (memoryCoord < 3.0) memoryBands = mix(uMemory2, uMemory3, memoryCoord - 2.0);
+      else if (memoryCoord < 4.0) memoryBands = mix(uMemory3, uMemory4, memoryCoord - 3.0);
+      else memoryBands = mix(uMemory4, uMemory5, memoryCoord - 4.0);
+
+      float radialNorm = clamp(centerDist / max(uHalfExtent * 0.72 * range, 0.001), 0.0, 1.0);
+      float memoryLowWeight = 1.0 - smoothstep(0.18, 0.62, radialNorm);
+      float memoryHighWeight = smoothstep(0.42, 0.92, radialNorm);
+      float memoryMidWeight = clamp(1.0 - abs(radialNorm - 0.5) * 2.0, 0.0, 1.0);
+      float memoryWeightSum = max(0.001, memoryLowWeight + memoryMidWeight + memoryHighWeight);
+      float memoryValue = (
+        memoryBands.x * memoryLowWeight +
+        memoryBands.y * memoryMidWeight +
+        memoryBands.z * memoryHighWeight
+      ) / memoryWeightSum;
+      float memoryTexture = 0.72 +
+        ((snoise(pos2D * 0.045 + vec2(uTime * 0.018, 0.0)) + 1.0) * 0.5) * 0.28;
+      audioElevation += memoryValue * memoryTexture * uSpectralMemoryStrength * 1.35;
+
+      // Optional center membrane displacement may become negative after a sharp
+      // bass stop, creating a rubber-sheet undershoot rather than a flash.
+      audioElevation += uMembraneOffset * subRegion * 4.2 * uAudioIntensity;
+`;
           next = next.replace(combineAnchor, `$1${continuousTerrain}`);
 
           const heightAnchor = /(      float totalHeight = 1\.0 \+ elevation;\r?\n)/;
@@ -371,16 +638,70 @@ export default defineConfig({
           }
           next = next.replace(
             heightAnchor,
-            `      float totalHeight = max(0.12, 1.0 + elevation);\n`,
+            `      float totalHeight = max(0.12, 1.0 + elevation);
+`,
           );
+
+          // Fragment-only uniforms for top-surface music accents.
+          const fragmentUniformAnchor = /(    uniform float uPeakIntensity;[^\n]*\r?\n)/;
+          if (!fragmentUniformAnchor.test(next)) {
+            throw new Error('Could not locate fragment uniform insertion point for top accents.');
+          }
+          next = next.replace(
+            fragmentUniformAnchor,
+            `$1    uniform float uTopAccentLevel;
+    uniform float uTopAccentDensity;
+    uniform float uTopAccentIntensity;
+    uniform float uTopAccentColorMode;
+    uniform vec3 uTopAccentRandomColor;
+    uniform vec3 uTopAccentCustomColor;
+`,
+          );
+
+          const topColorAnchor = /(         finalColor = mix\(cBase2, currentGlow, topIntensity\);\r?\n)/;
+          if (!topColorAnchor.test(next)) {
+            throw new Error('Could not locate top-face color insertion point for music accents.');
+          }
+          const topAccentShader = `
+         // Replace the old white sparkle with a colored top-face accent. A stable
+         // per-pillar mask chooses panels; the music envelope only changes color
+         // strength, so geometry and brightness do not hard-toggle at audio rate.
+         float accentMask = step(
+           1.0 - clamp(uTopAccentDensity, 0.0, 0.25),
+           fract(rnd * 31.731 + 0.173)
+         );
+         float accentEnvelope = smoothstep(0.02, 0.65, uTopAccentLevel);
+         float accentAmount = accentMask * accentEnvelope *
+           clamp(uTopAccentIntensity, 0.0, 1.5);
+
+         vec3 themeTopColor = mix(
+           mix(uCoolCore, uCoolEdge, 0.18),
+           mix(uWarmCore, uWarmEdge, 0.18),
+           clamp(uWarmth * 1.15 + 0.12, 0.0, 1.0)
+         );
+         themeTopColor = mix(themeTopColor, vec3(1.0), 0.08);
+
+         vec3 accentColor = themeTopColor;
+         if (uTopAccentColorMode > 0.5 && uTopAccentColorMode < 1.5) {
+           accentColor = uPeakColor;
+         } else if (uTopAccentColorMode >= 1.5 && uTopAccentColorMode < 2.5) {
+           accentColor = uTopAccentRandomColor;
+         } else if (uTopAccentColorMode >= 2.5) {
+           accentColor = uTopAccentCustomColor;
+         }
+
+         finalColor = mix(finalColor, accentColor, clamp(accentAmount, 0.0, 1.0));
+`;
+          next = next.replace(topColorAnchor, `$1${topAccentShader}`);
 
           if (
             !next.includes('uSpectralMemoryStrength: 0') ||
+            !next.includes('uTopAccentLevel: 0') ||
             !next.includes('memoryCoord') ||
             !next.includes('uMembraneOffset * subRegion') ||
-            !next.includes('Recompose after the stereo/coherence shaping')
+            !next.includes('themeTopColor')
           ) {
-            throw new Error('Enhanced shader terrain transform did not apply completely.');
+            throw new Error('Enhanced shader terrain/accent transform did not apply completely.');
           }
 
           return { code: next, map: null };
@@ -391,28 +712,189 @@ export default defineConfig({
 
           let next = code;
 
+          const colorRefsAnchor = /(  const _whiteColor = useMemo\(\(\) => new THREE\.Color\(0xffffff\), \[\]\);\r?\n)/;
+          if (!colorRefsAnchor.test(next)) {
+            throw new Error('Could not locate MapScene color-ref insertion point.');
+          }
+          next = next.replace(
+            colorRefsAnchor,
+            `$1
+  // Smooth top-accent state. Random colors interpolate rather than snapping.
+  const topAccentEnvelopeRef = useRef(0);
+  const topAccentPrevRawRef = useRef(0);
+  const topAccentRandomColorRef = useRef(new THREE.Color().setHSL(Math.random(), 0.78, 0.58));
+  const topAccentRandomTargetRef = useRef(topAccentRandomColorRef.current.clone());
+  const topAccentCustomColorRef = useRef({
+    raw: '',
+    color: new THREE.Color(0.15, 0.85, 1.0),
+  });
+`,
+          );
+
           const dataAnchor = /(    const data = buf\.audioData \|\| engine\.getAudioData\(0\.016\);\r?\n)/;
           if (!dataAnchor.test(next)) {
             throw new Error('Could not locate MapScene audio-data insertion point.');
           }
           next = next.replace(
             dataAnchor,
-            `$1    const music = engine.getMusicState();\n    const spectralMemory = engine.getSpectralMemory();\n`,
+            `$1    const music = engine.getMusicState();
+    const spectralMemory = engine.getSpectralMemory();
+`,
           );
+
+          next = next.replace(
+            '  useFrame((state) => {',
+            '  useFrame((state, delta) => {',
+          );
+
+          const themeAnchor = /(    const t = getThemeColors\(\);\r?\n)/;
+          if (!themeAnchor.test(next)) {
+            throw new Error('Could not locate MapScene top-accent envelope insertion point.');
+          }
+          const accentLogic = `
+    // Select a musical feature, then smooth it into a color envelope. Fast
+    // transients therefore become a brief colored hold instead of a white strobe.
+    let topAccentRaw = 0;
+    switch (engine.topAccentTrigger) {
+      case 'drop':
+        topAccentRaw = music.drop;
+        break;
+      case 'vocal': {
+        // Vocal-like heuristic only: favor sustained mid/high-mid harmonic energy,
+        // suppress strong bass and very sharp high-frequency transients.
+        const vocalBody =
+          data.mid * 0.55 +
+          data.highMid * 0.75 +
+          data.brightness * 0.30;
+        const nonVocalPenalty =
+          data.subBass * 0.28 +
+          data.bass * 0.20 +
+          music.highOnset * 0.22;
+        topAccentRaw = Math.max(0, Math.min(1, vocalBody - nonVocalPenalty));
+        break;
+      }
+      case 'bass':
+        topAccentRaw = Math.min(1, data.subBass * 0.78 + data.bass * 0.62);
+        break;
+      case 'beat':
+        topAccentRaw =
+          engine.rhythmSyncEnabled && music.tempoConfidence >= 0.20
+            ? music.beatPulse
+            : music.lowOnset;
+        break;
+      case 'highs':
+        topAccentRaw = Math.min(
+          1,
+          data.brightness * 0.62 + music.highOnset * 0.72,
+        );
+        break;
+      case 'energy':
+        topAccentRaw = Math.min(
+          1,
+          data.energy * 1.7 + Math.max(0, music.shortEnergy - music.longEnergy) * 2.5,
+        );
+        break;
+      case 'percussion':
+      default:
+        topAccentRaw = Math.min(
+          1,
+          Math.max(music.midOnset * 1.05, music.highOnset * 1.15),
+        );
+        break;
+    }
+
+    if (!engine.topAccentEnabled) topAccentRaw = 0;
+
+    const accentDt = Math.max(0.00025, Math.min(0.1, delta || 0.016));
+    const accentCurrent = topAccentEnvelopeRef.current;
+    const accentAttack = 0.055;
+    const accentRelease =
+      engine.topAccentTrigger === 'drop' ? 0.65 :
+      engine.topAccentTrigger === 'vocal' ? 0.42 :
+      engine.topAccentTrigger === 'bass' ? 0.28 :
+      0.32;
+    const accentTau = topAccentRaw > accentCurrent ? accentAttack : accentRelease;
+    const accentAlpha = 1 - Math.exp(-accentDt / accentTau);
+    topAccentEnvelopeRef.current +=
+      (topAccentRaw - topAccentEnvelopeRef.current) * accentAlpha;
+
+    // Random mode chooses a fresh hue on each distinct event, but the visible
+    // color itself eases toward that hue over ~140 ms.
+    const randomEventThreshold = 0.20;
+    if (
+      topAccentRaw >= randomEventThreshold &&
+      topAccentPrevRawRef.current < randomEventThreshold
+    ) {
+      topAccentRandomTargetRef.current.setHSL(Math.random(), 0.82, 0.58);
+    }
+    topAccentPrevRawRef.current = topAccentRaw;
+    const randomColorAlpha = 1 - Math.exp(-accentDt / 0.14);
+    topAccentRandomColorRef.current.lerp(
+      topAccentRandomTargetRef.current,
+      randomColorAlpha,
+    );
+
+    const customRaw = engine.topAccentCustomColor;
+    if (customRaw !== topAccentCustomColorRef.current.raw) {
+      const parts = customRaw.trim().split(/\s+/).map(Number);
+      if (
+        parts.length >= 3 &&
+        parts.slice(0, 3).every((value) => Number.isFinite(value))
+      ) {
+        topAccentCustomColorRef.current.color.setRGB(
+          Math.max(0, Math.min(1, parts[0])),
+          Math.max(0, Math.min(1, parts[1])),
+          Math.max(0, Math.min(1, parts[2])),
+        );
+      }
+      topAccentCustomColorRef.current.raw = customRaw;
+    }
+`;
+          next = next.replace(themeAnchor, `$1${accentLogic}`);
 
           const uniformAnchor = /(    mat\.uHalfExtent = halfExtent;\r?\n)/;
           if (!uniformAnchor.test(next)) {
             throw new Error('Could not locate MapScene terrain uniform insertion point.');
           }
-          const visualUniforms = `    mat.uStereoPan = engine.stereoSpatialEnabled ? music.stereoPan : 0.0;\n    mat.uStereoWidth = engine.stereoSpatialEnabled ? music.stereoWidth : 0.0;\n    mat.uStereoSpatialStrength = engine.stereoSpatialEnabled\n      ? engine.stereoSpatialStrength\n      : 0.0;\n    mat.uTerrainCoherenceStrength = engine.terrainCoherenceEnabled\n      ? engine.terrainCoherenceStrength\n      : 0.0;\n    mat.uSpectralMemoryStrength = engine.spectralMemoryEnabled\n      ? engine.spectralMemoryStrength\n      : 0.0;\n    mat.uMembraneOffset = engine.getMembraneOffset();\n    mat.uMemory0.set(spectralMemory[0], spectralMemory[1], spectralMemory[2]);\n    mat.uMemory1.set(spectralMemory[3], spectralMemory[4], spectralMemory[5]);\n    mat.uMemory2.set(spectralMemory[6], spectralMemory[7], spectralMemory[8]);\n    mat.uMemory3.set(spectralMemory[9], spectralMemory[10], spectralMemory[11]);\n    mat.uMemory4.set(spectralMemory[12], spectralMemory[13], spectralMemory[14]);\n    mat.uMemory5.set(spectralMemory[15], spectralMemory[16], spectralMemory[17]);\n`;
+          const visualUniforms = `    mat.uStereoPan = engine.stereoSpatialEnabled ? music.stereoPan : 0.0;
+    mat.uStereoWidth = engine.stereoSpatialEnabled ? music.stereoWidth : 0.0;
+    mat.uStereoSpatialStrength = engine.stereoSpatialEnabled
+      ? engine.stereoSpatialStrength
+      : 0.0;
+    mat.uTerrainCoherenceStrength = engine.terrainCoherenceEnabled
+      ? engine.terrainCoherenceStrength
+      : 0.0;
+    mat.uSpectralMemoryStrength = engine.spectralMemoryEnabled
+      ? engine.spectralMemoryStrength
+      : 0.0;
+    mat.uMembraneOffset = engine.getMembraneOffset();
+    mat.uMemory0.set(spectralMemory[0], spectralMemory[1], spectralMemory[2]);
+    mat.uMemory1.set(spectralMemory[3], spectralMemory[4], spectralMemory[5]);
+    mat.uMemory2.set(spectralMemory[6], spectralMemory[7], spectralMemory[8]);
+    mat.uMemory3.set(spectralMemory[9], spectralMemory[10], spectralMemory[11]);
+    mat.uMemory4.set(spectralMemory[12], spectralMemory[13], spectralMemory[14]);
+    mat.uMemory5.set(spectralMemory[15], spectralMemory[16], spectralMemory[17]);
+
+    mat.uTopAccentLevel = topAccentEnvelopeRef.current;
+    mat.uTopAccentDensity = engine.topAccentDensity;
+    mat.uTopAccentIntensity = engine.topAccentIntensity;
+    mat.uTopAccentColorMode =
+      engine.topAccentColorMode === 'peak' ? 1 :
+      engine.topAccentColorMode === 'random' ? 2 :
+      engine.topAccentColorMode === 'custom' ? 3 : 0;
+    mat.uTopAccentRandomColor.copy(topAccentRandomColorRef.current);
+    mat.uTopAccentCustomColor.copy(topAccentCustomColorRef.current.color);
+`;
           next = next.replace(uniformAnchor, `$1${visualUniforms}`);
 
           if (
             !next.includes('const spectralMemory = engine.getSpectralMemory();') ||
-            !next.includes('mat.uSpectralMemoryStrength =') ||
+            !next.includes('topAccentEnvelopeRef') ||
+            !next.includes("case 'vocal'") ||
+            !next.includes('mat.uTopAccentLevel =') ||
             !next.includes('mat.uMembraneOffset = engine.getMembraneOffset();')
           ) {
-            throw new Error('Enhanced MapScene terrain transform did not apply completely.');
+            throw new Error('Enhanced MapScene terrain/accent transform did not apply completely.');
           }
 
           return { code: next, map: null };
