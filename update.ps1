@@ -105,8 +105,6 @@ $RequiredProperties = @(
     "spectralMemoryStrength",
     "terrainCoherenceEnabled",
     "terrainCoherenceStrength",
-    "membraneEnabled",
-    "membraneStrength",
     "rhythmSyncEnabled",
     "beatTriggerStrength"
 )
@@ -118,23 +116,26 @@ foreach ($Name in $RequiredProperties) {
     Write-Host "  OK: $Name" -ForegroundColor Green
 }
 
-# These temporary/legacy settings must not appear as separate UI sections.
+# Temporary/legacy settings and the discarded membrane feature must not appear.
 $RemovedProperties = @(
     "sep_enhanced_audio",
     "sep_enhanced_audio_title",
     "sep_top_accent",
     "sep_top_accent_title",
-    "sparkleIntensity"
+    "sparkleIntensity",
+    "membraneEnabled",
+    "membraneStrength"
 )
 
 foreach ($Name in $RemovedProperties) {
     if ($null -ne $P.$Name) {
-        throw "Legacy/temporary property should not be user-facing: $Name"
+        throw "Removed property should not be user-facing: $Name"
     }
 }
 
 Write-Host "  OK: no Enhanced/v2 settings section" -ForegroundColor Green
 Write-Host "  OK: legacy Sparkle Intensity removed" -ForegroundColor Green
+Write-Host "  OK: rubber membrane feature removed" -ForegroundColor Green
 
 $JsonText = Get-Content $ProjectFile -Raw
 if ($JsonText -match '[\u3400-\u9fff]') {
