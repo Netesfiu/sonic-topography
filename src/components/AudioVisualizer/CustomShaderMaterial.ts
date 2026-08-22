@@ -374,37 +374,33 @@ export const MapShaderMaterial = shaderMaterial(
          // 峰值颜色额外增强顶面
          topIntensity += clamp(peakBlend * 0.4, 0.0, 1.0);
          
-         // Distance falloff for twinkling on flat ground
-         float twinkleDistFalloff = smoothstep(60.0, 30.0, centerDist);
-         float twinkleMultiplier = mix(twinkleDistFalloff, 1.0, smoothstep(0.01, 0.1, normElevation));
-
-         // Inactive shimmering (Air / Brilliance)
-         bool isSparkleTarget = fract(rnd * 31.0) > 0.95;
-         if (isSparkleTarget && normElevation < 0.1) {
-            topIntensity += uAir * 2.0 * twinkleMultiplier;
-         }
-         
+         // Keep the base top face stable. Music accents are injected immediately
+         // after this assignment by the Wallpaper Engine build transform.
          finalColor = mix(cBase2, currentGlow, topIntensity);
+
+         // Lamp-panel treatment inspired by inset LED floor panels: a dark frame,
+         // broad luminous surface and soft center bloom. Because the enhanced
+         // accent transform runs directly above this block, selected music panels
+         // keep their accent hue while gaining this smooth lamp profile.
+         vec2 panelCoord = abs(vUv - vec2(0.5)) * 2.0;
+         float panelEdgeDistance = max(panelCoord.x, panelCoord.y);
+         float panelSurface = 1.0 - smoothstep(0.72, 0.96, panelEdgeDistance);
+         float panelCore = 1.0 - smoothstep(0.20, 0.86, panelEdgeDistance);
+         float panelRim = smoothstep(0.74, 0.88, panelEdgeDistance) *
+                          (1.0 - smoothstep(0.88, 0.98, panelEdgeDistance));
+
+         vec3 lampColor = finalColor;
+         finalColor *= mix(0.42, 1.0, panelSurface);
+         finalColor = mix(finalColor, lampColor * 1.10, panelCore * 0.18);
+         finalColor += lampColor * panelRim * 0.10;
          
-         // Edges glow on the top face
-         float edgeX = smoothstep(0.05, 0.01, vUv.x) + smoothstep(0.95, 0.99, vUv.x);
-         float edgeY = smoothstep(0.05, 0.01, vUv.y) + smoothstep(0.95, 0.99, vUv.y);
+         // Restrained structural rim only. The former Air/Presence/Brilliance
+         // sparkle and micro-flash paths are intentionally removed: illuminated
+         // panels should read as lamps, not glittering disco-ball facets.
+         float edgeX = smoothstep(0.04, 0.01, vUv.x) + smoothstep(0.96, 0.99, vUv.x);
+         float edgeY = smoothstep(0.04, 0.01, vUv.y) + smoothstep(0.96, 0.99, vUv.y);
          float edge = min(edgeX + edgeY, 1.0);
-         finalColor += currentGlow * edge * 0.8 * (topIntensity + 0.3);
-         
-         // Presence / Sharpness flickers - slower, more deliberate flashes
-         float flashChance = smoothstep(0.5, 1.0, uPresence);
-         if (fract(rnd * 53.0) > 0.985 - flashChance * 0.05) {
-             // Slower pulse: ~8Hz instead of 40Hz for less strobe-like effect
-             float flashSync = sin(uTime * 8.0 + rnd * 50.0) * 0.5 + 0.5;
-             finalColor += mix(vec3(1.0), vec3(0.5, 1.0, 1.0), rnd) * flashSync * uPresence * (1.0 + uSharpness * 1.5) * twinkleMultiplier;
-         }
-         
-         // Brilliance micro-sparks strictly on edges - much rarer and slower
-         float brilliancePhase = sin(uTime * 1.5 + rnd * 30.0) * 0.5 + 0.5; // Slow breathing phase
-         if (edge > 0.6 && fract(rnd * 89.0) > 0.992 && brilliancePhase > 0.7) {
-             finalColor += vec3(1.0) * uBrilliance * 2.0 * twinkleMultiplier * brilliancePhase;
-         }
+         finalColor += lampColor * edge * 0.16 * (topIntensity + 0.2);
 
       } else {
          // Side faces
