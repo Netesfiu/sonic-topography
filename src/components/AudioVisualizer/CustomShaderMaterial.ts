@@ -373,6 +373,13 @@ export const MapShaderMaterial = shaderMaterial(
 
          // 峰值颜色额外增强顶面
          topIntensity += clamp(peakBlend * 0.4, 0.0, 1.0);
+
+         // The base grid is 168 world units wide. At the default 160-cell
+         // resolution each pillar step is 1.05 units, so a 2.10-unit hash cell
+         // groups four neighboring pillars into one larger visual lamp. This only
+         // changes the accent-selection hash: no geometry or extra faces are added.
+         vec2 lampCell = floor((vInstancePos + vec2(1.05)) / 2.10);
+         rnd = random(lampCell);
          
          // Keep the top face deliberately uniform. The Wallpaper Engine build
          // transform injects music-selected lamp coloring immediately after this
