@@ -447,7 +447,7 @@ export const MapScene = forwardRef<MapSceneHandle, MapSceneProps>(({ theme = 'no
       >
         <boxGeometry args={[pillarWidth, 1, pillarWidth]} />
         {/* @ts-ignore */}
-        <mapShaderMaterial ref={materialRef} transparent={true} depthWrite={true} />
+        <mapShaderMaterial ref={materialRef} transparent={false} depthWrite={true} depthTest={true} />
       </instancedMesh>
 
       <instancedMesh ref={meteorMeshRef} args={[undefined as any, undefined as any, MAX_METEORS]} frustumCulled={false}>
