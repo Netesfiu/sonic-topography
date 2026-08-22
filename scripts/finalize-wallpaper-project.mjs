@@ -17,14 +17,16 @@ if (!properties) {
   throw new Error('Generated project.json has no general.properties object.');
 }
 
-// Keep the original Wallpaper Engine section layout. Only remove the temporary
-// Enhanced-v2 headings and the superseded white-sparkle control.
+// Keep the original Wallpaper Engine section layout. Remove temporary Enhanced-v2
+// headings, the superseded white-sparkle control and the discarded membrane feature.
 for (const name of [
   'sep_enhanced_audio',
   'sep_enhanced_audio_title',
   'sep_top_accent',
   'sep_top_accent_title',
   'sparkleIntensity',
+  'membraneEnabled',
+  'membraneStrength',
 ]) {
   delete properties[name];
 }
@@ -171,21 +173,6 @@ configure('terrainCoherenceStrength', {
   index: 9,
   order: 309,
   text: 'Terrain Coherence Strength',
-  min: 0,
-  max: 1.5,
-  step: 0.05,
-});
-
-configure('membraneEnabled', {
-  index: 10,
-  order: 310,
-  text: 'Rubber Membrane Center',
-});
-
-configure('membraneStrength', {
-  index: 11,
-  order: 311,
-  text: 'Membrane Bounce Strength',
   min: 0,
   max: 1.5,
   step: 0.05,
