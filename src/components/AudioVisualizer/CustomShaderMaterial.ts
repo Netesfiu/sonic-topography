@@ -373,38 +373,19 @@ export const MapShaderMaterial = shaderMaterial(
 
          // 峰值颜色额外增强顶面
          topIntensity += clamp(peakBlend * 0.4, 0.0, 1.0);
-         
-         // Distance falloff for twinkling on flat ground
-         float twinkleDistFalloff = smoothstep(60.0, 30.0, centerDist);
-         float twinkleMultiplier = mix(twinkleDistFalloff, 1.0, smoothstep(0.01, 0.1, normElevation));
 
-         // Inactive shimmering (Air / Brilliance)
-         bool isSparkleTarget = fract(rnd * 31.0) > 0.95;
-         if (isSparkleTarget && normElevation < 0.1) {
-            topIntensity += uAir * 2.0 * twinkleMultiplier;
-         }
+         // The base grid is 168 world units wide. At the default 160-cell
+         // resolution each pillar step is 1.05 units, so a 2.10-unit hash cell
+         // groups four neighboring pillars into one larger visual lamp. This only
+         // changes the accent-selection hash: no geometry or extra faces are added.
+         vec2 lampCell = floor((vInstancePos + vec2(1.05)) / 2.10);
+         rnd = random(lampCell);
          
+         // Keep the top face deliberately uniform. The Wallpaper Engine build
+         // transform injects music-selected lamp coloring immediately after this
+         // assignment. The physical gap between pillars is the lamp bezel, so no
+         // UV-scale rim/core pattern is needed and tiny distant panels stay solid.
          finalColor = mix(cBase2, currentGlow, topIntensity);
-         
-         // Edges glow on the top face
-         float edgeX = smoothstep(0.05, 0.01, vUv.x) + smoothstep(0.95, 0.99, vUv.x);
-         float edgeY = smoothstep(0.05, 0.01, vUv.y) + smoothstep(0.95, 0.99, vUv.y);
-         float edge = min(edgeX + edgeY, 1.0);
-         finalColor += currentGlow * edge * 0.8 * (topIntensity + 0.3);
-         
-         // Presence / Sharpness flickers - slower, more deliberate flashes
-         float flashChance = smoothstep(0.5, 1.0, uPresence);
-         if (fract(rnd * 53.0) > 0.985 - flashChance * 0.05) {
-             // Slower pulse: ~8Hz instead of 40Hz for less strobe-like effect
-             float flashSync = sin(uTime * 8.0 + rnd * 50.0) * 0.5 + 0.5;
-             finalColor += mix(vec3(1.0), vec3(0.5, 1.0, 1.0), rnd) * flashSync * uPresence * (1.0 + uSharpness * 1.5) * twinkleMultiplier;
-         }
-         
-         // Brilliance micro-sparks strictly on edges - much rarer and slower
-         float brilliancePhase = sin(uTime * 1.5 + rnd * 30.0) * 0.5 + 0.5; // Slow breathing phase
-         if (edge > 0.6 && fract(rnd * 89.0) > 0.992 && brilliancePhase > 0.7) {
-             finalColor += vec3(1.0) * uBrilliance * 2.0 * twinkleMultiplier * brilliancePhase;
-         }
 
       } else {
          // Side faces
