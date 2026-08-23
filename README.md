@@ -2,6 +2,32 @@
 
 ![preview](wallpaper/preview.gif)
 
+> **Enhanced fork / modified version**
+>
+> This repository is a modified fork of the original [Sonic Topography](https://github.com/CmzYa/sonic-topography) project by **CmzYa**.
+> The enhanced fork is maintained by **Netesfiu** and contains substantial audio-analysis, rendering, visual-effect, configuration and build-system changes made in 2026.
+>
+> The project remains licensed under **GNU GPL-3.0**. See [LICENSE](LICENSE) for the full license text.
+>
+> If you enjoy the enhanced version and would like to support further development, you can do so here: **https://ko-fi.com/netesfiu**
+>
+> Support is completely optional and does not change your rights under the GPL-3.0 license.
+
+### Enhanced fork highlights
+
+- True stereo-aware Wallpaper Engine spectrum handling with correct left/right channel mapping
+- Smoother frame-rate-independent visual response with configurable attack and release
+- Beat, onset, tempo and music-state analysis for more coherent audio-reactive effects
+- Stereo spatialization across the terrain
+- Multi-timescale spectral memory for slowly fading terrain contours
+- Music-driven terrain coherence for broader or more fragmented topology depending on the audio
+- Beat-synced ripple behavior and configurable trigger strength
+- Music-reactive colored lamp panels with per-event randomized placement
+- Bass-core exclusion for lamp placement so the central low-frequency terrain remains visually clean
+- Resolution-aware lamp grouping calibrated around the 120×120 terrain setting
+- Fine-grained Wallpaper Engine controls integrated into the original settings layout
+- English-only generated Wallpaper Engine configuration and improved local build/deploy tooling
+
 3D 音频响应地形可视化壁纸，基于 React + Three.js + GLSL 自定义着色器构建。将系统音频实时转化为起伏的柱状地形、扩散波纹和高空流星，为 Wallpaper Engine 打造沉浸式听觉视觉体验。
 
 Wallpaper Engine 创意工坊页面：<https://steamcommunity.com/sharedfiles/filedetails/?id=3747222633>
@@ -105,8 +131,11 @@ Wallpaper Engine 属性面板提供以下分组配置：
 
 本项目基于 [GPL-3.0](LICENSE) 协议开源。
 
-## 致谢
+## Credits / 致谢
 
+- **Original project:** [CmzYa/sonic-topography](https://github.com/CmzYa/sonic-topography) by **CmzYa**
+- **Enhanced fork:** [Netesfiu/sonic-topography](https://github.com/Netesfiu/sonic-topography) by **Netesfiu**
+- **Support the enhanced fork:** https://ko-fi.com/netesfiu
 - [Three.js](https://threejs.org/) — WebGL 渲染引擎
 - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) — React 渲染器
 - [Vite](https://vitejs.dev/) — 构建工具
